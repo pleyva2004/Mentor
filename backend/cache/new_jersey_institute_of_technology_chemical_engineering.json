@@ -1,0 +1,161 @@
+{
+  "timestamp": "2025-10-04T14:46:13.681028",
+  "data": [
+    {
+      "course_number": "CHEM 125",
+      "course_title": "General Chemistry I"
+    },
+    {
+      "course_number": "CHEM 125A",
+      "course_title": "General Chemistry Lab I"
+    },
+    {
+      "course_number": "FED 101",
+      "course_title": "Fundamentals of Engineering Design"
+    },
+    {
+      "course_number": "ENGL 101",
+      "course_title": "English Composition: Introduction to Academic Writing"
+    },
+    {
+      "course_number": "MATH 111",
+      "course_title": "Calculus I"
+    },
+    {
+      "course_number": "PHYS 111",
+      "course_title": "Physics I"
+    },
+    {
+      "course_number": "PHYS 111A",
+      "course_title": "Physics I Lab"
+    },
+    {
+      "course_number": "CHE 101",
+      "course_title": "Introduction to Chemical Engineering"
+    },
+    {
+      "course_number": "CHEM 126",
+      "course_title": "General Chemistry II"
+    },
+    {
+      "course_number": "CS 115",
+      "course_title": "Introduction to Computer Science I in C++"
+    },
+    {
+      "course_number": "ENGL 102",
+      "course_title": "English Composition: Introduction to Writing for Research"
+    },
+    {
+      "course_number": "MATH 112",
+      "course_title": "Calculus II"
+    },
+    {
+      "course_number": "PHYS 121",
+      "course_title": "Physics II"
+    },
+    {
+      "course_number": "PHYS 121A",
+      "course_title": "Physics II Lab"
+    },
+    {
+      "course_number": "CHE 201",
+      "course_title": "Material and Energy Balances"
+    },
+    {
+      "course_number": "CHE 230",
+      "course_title": "Chemical Engineering Thermodynamics I"
+    },
+    {
+      "course_number": "MATH 211",
+      "course_title": "Calculus III A"
+    },
+    {
+      "course_number": "ENGR 211",
+      "course_title": "Professional Skills for Engineers I"
+    },
+    {
+      "course_number": "CHE 260",
+      "course_title": "Fluid Flow"
+    },
+    {
+      "course_number": "CHEM 236",
+      "course_title": "Physical Chemistry for Chemical Engineers"
+    },
+    {
+      "course_number": "CHEM 243",
+      "course_title": "Organic Chemistry I"
+    },
+    {
+      "course_number": "CHEM 244A",
+      "course_title": "Organic Chemistry I Laboratory"
+    },
+    {
+      "course_number": "MATH 222",
+      "course_title": "Differential Equations"
+    },
+    {
+      "course_number": "CHE 342",
+      "course_title": "Chemical Engineering Thermodynamics II"
+    },
+    {
+      "course_number": "CHE 370",
+      "course_title": "Heat and Mass Transfer"
+    },
+    {
+      "course_number": "CHEM 339",
+      "course_title": "Physical Chemistry Laboratory"
+    },
+    {
+      "course_number": "MATH 225",
+      "course_title": "Survey of Probability and Statistics"
+    },
+    {
+      "course_number": "MTEN 201",
+      "course_title": "Introductory Principles of Materials Engineering"
+    },
+    {
+      "course_number": "CHE 312",
+      "course_title": "Chemical Process Safety"
+    },
+    {
+      "course_number": "CHE 349",
+      "course_title": "Kinetics and Reactor Design"
+    },
+    {
+      "course_number": "CHE 360",
+      "course_title": "Separation Processes I"
+    },
+    {
+      "course_number": "CHE 365",
+      "course_title": "Chemical Engineering Computing"
+    },
+    {
+      "course_number": "COM 313",
+      "course_title": "Technical Writing"
+    },
+    {
+      "course_number": "CHE 489",
+      "course_title": "Process Dynamics and Control"
+    },
+    {
+      "course_number": "CHE 495",
+      "course_title": "Chemical Engineering Laboratory I"
+    },
+    {
+      "course_number": "IE 492",
+      "course_title": "Engineering Management"
+    },
+    {
+      "course_number": "PHIL 334",
+      "course_title": "Engineering Ethics and Technological Practice: Philosophical Perspectives on Engineering"
+    },
+    {
+      "course_number": "CHE 472",
+      "course_title": "Process and Plant Design"
+    },
+    {
+      "course_number": "CHE 496",
+      "course_title": "Chemical Engineering Laboratory II"
+    }
+  ]
+}

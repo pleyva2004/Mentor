@@ -74,72 +74,72 @@ def extractCourses(html_content: str, school: str, major: str) -> dict:
     text_content = soup.get_text(separator='\n', strip=True)[:15000]
 
     prompt_course_scraper = f"""
-You are an information extraction system. You will receive the HTML of a university course catalog for a specific major. Your task is to extract all course titles and course numbers belonging to that major.
+        You are an information extraction system. You will receive the HTML of a university course catalog for a specific major. Your task is to extract all course titles and course numbers belonging to that major.
 
-Instructions:
-1. Parse the HTML carefully and find all courses listed under the major's section.
-2. For each course, extract:
-   - Course Number (e.g., "MATH 340" or "CS 100")
-   - Course Title (e.g., "Numerical Methods" or "Introduction to Programming")
-3. Return the output as a **JSON array** of objects with the following schema:
-   ```json
-   [
-     {{
-       "course_number": "DEPT 101",
-       "course_title": "Course Title"
-     }},
-     ...
-   ]
-```
+        Instructions:
+        1. Parse the HTML carefully and find all courses listed under the major's section.
+        2. For each course, extract:
+        - Course Number (e.g., "MATH 340" or "CS 100")
+        - Course Title (e.g., "Numerical Methods" or "Introduction to Programming")
+        3. Return the output as a **JSON array** of objects with the following schema:
+        ```json
+        [
+            {{
+            "course_number": "DEPT 101",
+            "course_title": "Course Title"
+            }},
+            ...
+        ]
+        ```
 
-4. Ignore course descriptions, prerequisites, credit hours, or general education notes — only capture number and title.
-5. If there are cross-listed courses, list each course number separately with the same title.
-6. Do not hallucinate or infer missing titles; only extract what is explicitly present in the HTML.
+        4. Ignore course descriptions, prerequisites, credit hours, or general education notes — only capture number and title.
+        5. If there are cross-listed courses, list each course number separately with the same title.
+        6. Do not hallucinate or infer missing titles; only extract what is explicitly present in the HTML.
 
-Example (Input → Output)
+        Example (Input → Output)
 
-Input HTML (truncated):
-```html
-<h2 id="math">Mathematics (MATH)</h2>
-<div class="course">
-  <span class="course-number">MATH 340</span>
-  <span class="course-title">Numerical Methods</span>
-  <p class="course-description">Introduction to numerical techniques for solving equations...</p>
-</div>
-<div class="course">
-  <span class="course-number">MATH 461</span>
-  <span class="course-title">Probability</span>
-</div>
-```
+        Input HTML (truncated):
+        ```html
+        <h2 id="math">Mathematics (MATH)</h2>
+        <div class="course">
+        <span class="course-number">MATH 340</span>
+        <span class="course-title">Numerical Methods</span>
+        <p class="course-description">Introduction to numerical techniques for solving equations...</p>
+        </div>
+        <div class="course">
+        <span class="course-number">MATH 461</span>
+        <span class="course-title">Probability</span>
+        </div>
+        ```
 
-Output:
+        Output:
 
-```json
-[
-  {{
-    "course_number": "MATH 340",
-    "course_title": "Numerical Methods"
-  }},
-  {{
-    "course_number": "MATH 461",
-    "course_title": "Probability"
-  }}
-]
-```
-T
+        ```json
+        [
+        {{
+            "course_number": "MATH 340",
+            "course_title": "Numerical Methods"
+        }},
+        {{
+            "course_number": "MATH 461",
+            "course_title": "Probability"
+        }}
+        ]
+        ```
+        T
 
-The output should only contain the JSON array of objects. Do not include any other text or comments. Do not include any steps or explanations.
+        The output should only contain the JSON array of objects. Do not include any other text or comments. Do not include any steps or explanations.
 
-Input:
+        Input:
 
-The following is the HTML content of the course catalog for the major {major}:
+        The following is the HTML content of the course catalog for the major {major}:
 
-```
-{text_content}
-```
+        ```
+        {text_content}
+        ```
 
-Output:
-"""
+        Output:
+        """
     try:
         message = client.generate(prompt_course_scraper)
 

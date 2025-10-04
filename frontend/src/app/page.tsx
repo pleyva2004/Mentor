@@ -1,11 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import CourseList, { Course } from '@/components/CourseList';
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,6 +46,16 @@ export default function Home() {
 
       const data = await response.json();
       setResult(data);
+
+      // Transform backend course_work format to component format
+      if (data.course_work && Array.isArray(data.course_work)) {
+        const transformedCourses = data.course_work.map((course: any) => ({
+          id: course.course_number,
+          name: course.course_title,
+          code: course.course_number
+        }));
+        setCourses(transformedCourses);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -119,6 +132,15 @@ export default function Home() {
                 {result.text}
               </pre>
             </div>
+          </div>
+        )}
+
+        {courses.length > 0 && (
+          <div className="mt-8 border-t pt-6">
+            <CourseList
+              courses={courses}
+              onSelectionChange={setSelectedCourses}
+            />
           </div>
         )}
       </div>
