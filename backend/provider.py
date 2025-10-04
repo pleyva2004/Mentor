@@ -72,23 +72,7 @@ class GeminiProvider(LLMProvider):
 
 
 def get_llm_provider(provider: str = "anthropic", **kwargs) -> LLMProvider:
-    """
-    Factory function to get the appropriate LLM provider
 
-    Args:
-        provider: Provider name - 'openai', 'anthropic', or 'gemini'
-        **kwargs: Additional arguments to pass to the provider (e.g., api_key, model)
-
-    Returns:
-        An instance of the requested LLM provider
-
-    Raises:
-        ValueError: If provider name is not recognized
-
-    Example:
-        >>> provider = get_llm_provider('openai', model='gpt-4o')
-        >>> response = provider.generate("What is 2+2?")
-    """
     providers = {
         'openai': OpenAIProvider,
         'anthropic': AnthropicProvider,
