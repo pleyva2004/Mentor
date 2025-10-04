@@ -155,33 +155,35 @@ Output:
 
 def scrapeCourseRequirements(school: str, major: str) -> dict:
 
-
     # Create cache key
     cache_key = f"{school.lower().replace(' ', '_')}_{major.lower().replace(' ', '_')}"
     print("--------------------------------")
-    print(cache_key)
+    logger.info(f"Cache key: {cache_key}")
     print("--------------------------------")
     
     # Check cache first
     cached_data = get_cache(cache_key)
     if cached_data:
         logger.info(f"Using cached data for {school} {major}")
+        print("--------------------------------")
         return cached_data
 
     logger.info(f"Scraping course requirements for {school} {major}")
+    print("--------------------------------")
 
     # Search for catalog URLs
     urls = searchCourseCatalogs(school, major)
 
     if not urls:
         logger.warning("No catalog URLs found")
+        print("--------------------------------")
         return [], False
 
     # Try each URL until we get course data
     all_courses = []
     for url in urls:
         logger.info(f"Fetching content from {url}")
-
+        print("--------------------------------")
         html_content = fetchPageContent(url)
         if not html_content:
             continue
@@ -208,4 +210,5 @@ def scrapeCourseRequirements(school: str, major: str) -> dict:
         set_cache(cache_key, final_result)
 
     logger.info(f"Scraped {len(unique_courses)} unique courses for {school} {major}")
+    print("--------------------------------")
     return final_result
