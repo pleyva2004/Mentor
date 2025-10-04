@@ -1,0 +1,123 @@
+{
+  "timestamp": "2025-10-03T09:51:26.890024",
+  "data": {
+    "courses": [
+      {
+        "code": "CS 100",
+        "name": "Roadmap to Computing"
+      },
+      {
+        "code": "MATH 111",
+        "name": "Calculus I"
+      },
+      {
+        "code": "ENGL 101",
+        "name": "English Composition: Introduction to Academic Writing"
+      },
+      {
+        "code": "PHYS 111",
+        "name": "Physics I"
+      },
+      {
+        "code": "PHYS 111A",
+        "name": "Physics I Lab"
+      },
+      {
+        "code": "CS 113",
+        "name": "Introduction to Computer Science I"
+      },
+      {
+        "code": "MATH 112",
+        "name": "Calculus II"
+      },
+      {
+        "code": "ENGL 102",
+        "name": "English Composition: Introduction to Writing for Research"
+      },
+      {
+        "code": "PHYS 121",
+        "name": "Physics II"
+      },
+      {
+        "code": "PHYS 121A",
+        "name": "Physics II Lab"
+      },
+      {
+        "code": "CS 114",
+        "name": "Introduction to Computer Science II"
+      },
+      {
+        "code": "MATH 333",
+        "name": "Probability and Statistics"
+      },
+      {
+        "code": "CS 241",
+        "name": "Foundations of Computer Science I"
+      },
+      {
+        "code": "CS 280",
+        "name": "Programming Language Concepts"
+      },
+      {
+        "code": "IS 350",
+        "name": "Computers, Society and Ethics"
+      },
+      {
+        "code": "MATH 337",
+        "name": "Linear Algebra"
+      },
+      {
+        "code": "YWCC 207",
+        "name": "Computing & Effective Com"
+      },
+      {
+        "code": "CS 288",
+        "name": "Intensive Programming in Linux"
+      },
+      {
+        "code": "CS 332",
+        "name": "Principles of Operating Systems"
+      },
+      {
+        "code": "CS 301",
+        "name": "Introduction to Data Science"
+      },
+      {
+        "code": "CS 356",
+        "name": "Introduction to Computer Networks"
+      },
+      {
+        "code": "CS 331",
+        "name": "Database System Design & Mgmt"
+      },
+      {
+        "code": "YWCC 307",
+        "name": "Professional Dev in Computing"
+      },
+      {
+        "code": "CS 341",
+        "name": "Foundations of Computer Science II"
+      },
+      {
+        "code": "CS 350",
+        "name": "Intro to Computer Systems"
+      },
+      {
+        "code": "CS 351",
+        "name": "Introduction to Cybersecurity"
+      },
+      {
+        "code": "CS 435",
+        "name": "Advanced Data Structures and Algorithm Design"
+      },
+      {
+        "code": "CS 490",
+        "name": "Guided Design in Software Engineering"
+      },
+      {
+        "code": "CS 491",
+        "name": "Senior Project"
+      }
+    ]
+  }
+}

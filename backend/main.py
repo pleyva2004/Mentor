@@ -15,7 +15,6 @@ app.add_middleware(
 )
 
 def extract_text_from_pdf(file_content: bytes) -> str:
-    """Extract text from PDF bytes"""
     try:
         doc = fitz.open(stream=file_content, filetype="pdf")
         text = ''
@@ -35,7 +34,6 @@ def extract_text_from_pdf(file_content: bytes) -> str:
 
 @app.post("/upload-resume")
 async def upload_resume(file: UploadFile = File(...)):
-    """Upload and extract text from resume PDF"""
 
     if not file.filename.endswith('.pdf'):
         raise HTTPException(status_code=400, detail="Only PDF files are allowed")
