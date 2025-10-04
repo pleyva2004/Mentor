@@ -1,0 +1,20 @@
+Resume Helper MVP - Prototype Feature Requirements
+1.0 Overview
+This document specifies the minimum required features for the Resume Helper MVP prototype. The primary objective of this prototype is to validate the core user experience of an interactive, visually-guided resume editing process. The focus is on demonstrating the "feel" of the interaction and the potential of AI-assisted editing, rather than implementing a fully functional, production-ready application. All features described below are considered "must-haves" for a successful validation test.
+
+2.0 Core Feature Requirements
+2.1 Interactive Resume Structure: Draggable Blocks
+FR-1.1 Section Selection & Highlighting: When a user hovers their mouse over a distinct resume section (e.g., "Work Experience," "Education," "Skills"), the entire section block must be visually highlighted. This effect (e.g., a subtle border, shadow, or background color change) serves to clearly indicate that the section is an interactive element.
+FR-1.2 Drag-and-Drop Reordering: The user must be able to click and hold on a section block to "pick it up" and drag it vertically. As the block is dragged, a visual placeholder or guide (e.g., a dashed outline) should appear between other sections to show the user exactly where the block will be placed upon release.
+FR-1.3 Automatic Reflow Animation: Upon releasing a dragged section into a new position, all other sections must animate smoothly to their new locations. This fluid transition is critical for providing immediate visual feedback and reinforcing the user's control over the document structure.
+2.2 Edit Mode and Content Manipulation
+FR-2.1 Transition to Edit Mode: Clicking on a specific resume section (or a dedicated "Edit" icon that appears on hover) shall trigger a transition into "Edit Mode." This transition must be a smooth animation, such as the entire resume preview sliding to the left side of the screen to occupy approximately 60-70% of the viewport. This action focuses the user's attention on the editing task.
+FR-2.2 Direct In-line Editing: Once in Edit Mode, the user must be able to edit text fields directly on the resume preview by clicking on them. This functionality is required for the following elements:
+Titles: Job Title, Company Name, Degree, etc.
+Metadata: Location (e.g., "New York, NY") and Date Ranges (e.g., "Jan 2020 - Present").
+Bullet Points: Each bullet point describing a responsibility or achievement must be individually editable. Clicking a bullet point should convert it into an active text input field.
+FR-2.3 Contextual Editing Toolbar (Prototype): When a text element (like a bullet point) is selected for editing, a small, floating toolbar should appear nearby. For the prototype, this toolbar will contain static icons representing conceptual actions like "Rephrase with AI," "Check Grammar," or "Add Action Verb." The purpose is to demonstrate the intended placement and utility of contextual tools.
+2.3 AI Helper Panel
+FR-3.1 Panel Appearance: Coinciding with the transition to Edit Mode, an "AI Helper" panel must animate into view on the right side of the screen, occupying the remaining 30-40% of the viewport. Its appearance should be synchronized with the resume's slide-to-left animation.
+FR-3.2 Context-Aware Content (Simulated): The content within the AI Helper panel must appear to be context-aware. This will be simulated in the prototype. For instance, if the user is editing a bullet point in the "Work Experience" section, the panel will display pre-written, static advice relevant to that task (e.g., "Tip: Quantify your achievements with numbers to show impact," or "Try starting with a strong action verb like 'Orchestrated' or 'Implemented'").
+FR-3.3 Interactive Suggestions (Simulated): The panel should feature clickable suggestion buttons (e.g., "Improve Phrasing"). For the prototype, clicking a button will execute a pre-scripted action, such as replacing the user's selected bullet point text with a pre-written, improved alternative to simulate the AI's rewriting capability.

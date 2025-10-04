@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Helper MVP - Interactive Prototype (Revised)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --primary-color: #4F46E5;
+            --primary-hover: #4338CA;
+            --secondary-color: #1F2937;
+            --background-color: #F9FAFB;
+            --card-background: #FFFFFF;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+            --border-color: #E5E7EB;
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--card-background);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        header .logo {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        main {
+            flex-grow: 1;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        /* Screen States */
+        .screen {
+            width: 100%;
+            max-width: 1200px;
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        }
+
+        .hidden {
+            display: none;
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        /* Upload Screen */
+        #upload-screen {
+            text-align: center;
+        }
+
+        .upload-card {
+            background: var(--card-background);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .upload-card h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-card p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .upload-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .file-drop-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .file-drop-zone:hover {
+            background-color: #F3F4F6;
+            border-color: var(--primary-color);
+        }
+        
+        .file-drop-zone .icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .file-drop-zone h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .file-drop-zone span {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .file-drop-zone.uploaded {
+            border-color: var(--success-color);
+            background-color: #F0FDF4;
+        }
+        
+        .file-drop-zone.uploaded .icon {
+            color: var(--success-color);
+        }
+
+        .file-drop-zone.uploaded h3 {
+            color: #059669;
+        }
+
+        .privacy-notice {
+            margin-top: 2rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            font-size: 1rem;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background-color: #9CA3AF;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Edit Screen */
+        .edit-container {
+            display: flex;
+            gap: 2rem;
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .resume-panel {
+            flex: 2;
+            transition: flex 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        
+        .edit-container.is-editing .resume-panel {
+            flex: 1.5;
+        }
+
+        .verification-header {
+            background: #E0E7FF;
+            color: #3730A3;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #C7D2FE;
+        }
+
+        .verification-header h2 {
+            font-size: 1.25rem;
+        }
+        
+        .verification-header p {
+            font-size: 0.9rem;
+        }
+        
+        #resume-preview {
+            background: var(--card-background);
+            padding: 2.5rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            min-height: 800px;
+        }
+
+        .resume-block {
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--warning-color);
+            border-radius: 8px;
+            cursor: grab;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .resume-block:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px);
+            border-color: var(--primary-color);
+        }
+
+        .resume-block.is-dragging {
+            opacity: 0.5;
+            background: #E0E7FF;
+        }
+        
+        .resume-block.is-confirmed {
+            border-left-color: var(--success-color);
+        }
+
+        .resume-block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .resume-block-header h3 {
+            font-size: 1.5rem;
+            color: var(--secondary-color);
+        }
+        
+        .block-actions .btn-confirm {
+            background-color: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 0.4rem 0.8rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+        .block-actions .btn-confirm:hover {
+            background-color: #F3F4F6;
+            color: var(--text-primary);
+        }
+
+        .block-actions .btn-confirm.confirmed {
+            background-color: #D1FAE5;
+            color: #065F46;
+            border-color: #A7F3D0;
+            cursor: default;
+        }
+
+        .resume-block-content p {
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+        
+        .resume-block-content ul {
+            list-style-position: inside;
+            padding-left: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        /* AI Helper Panel */
+        #ai-helper {
+            flex: 0;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            overflow: hidden;
+            width: 0;
+        }
+
+        .edit-container.is-editing #ai-helper {
+            flex: 1;
+            opacity: 1;
+            transform: translateX(0);
+            width: auto;
+        }
+
+        .ai-helper-card {
+            background: var(--card-background);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            position: sticky;
+            top: 100px; /* Adjust based on header height */
+        }
+        
+        .ai-helper-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .ai-helper-header .icon {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            background: #E0E7FF;
+            padding: 0.75rem;
+            border-radius: 50%;
+        }
+
+        .ai-helper-header h4 {
+            font-size: 1.25rem;
+        }
+
+        .ai-suggestion {
+            background: #F3F4F6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .ai-suggestion strong {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--secondary-color);
+        }
+        
+        .ai-actions .btn-ai {
+            width: 100%;
+            background: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 0.6rem 1rem;
+            margin-top: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .ai-actions .btn-ai:hover {
+            background: #EEF2FF;
+        }
+        
+        .btn-close-ai {
+            width: 100%;
+            background: var(--secondary-color);
+            color: white;
+            padding: 0.6rem 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn-close-ai:hover {
+            background: #374151;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .edit-container {
+                flex-direction: column;
+            }
+
+            .edit-container.is-editing .resume-panel {
+                flex: 1;
+            }
+
+            #ai-helper {
+                width: 100%;
+                max-width: none;
+                transform: translateY(20px);
+            }
+            
+            .edit-container.is-editing #ai-helper {
+                flex: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            main {
+                padding: 1rem;
+            }
+            header {
+                padding: 1rem;
+            }
+            .upload-card {
+                padding: 1.5rem;
+            }
+            #resume-preview {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <div class="logo">ResumeHelper MVP</div>
+            <nav>
+                <!-- Nav items can go here -->
+            </nav>
+        </header>
+
+        <main>
+            <!-- SCREEN 1: UPLOAD -->
+            <section id="upload-screen" class="screen">
+                <div class="upload-card">
+                    <h1>Build Your AI-Powered Resume</h1>
+                    <p>Upload your documents, and we'll automatically create a professional, polished resume for you.</p>
+
+                    <div class="upload-grid">
+                        <div class="file-drop-zone" id="resume-dropzone" onclick="document.getElementById('resume-upload').click()">
+                            <input type="file" id="resume-upload" accept=".pdf" class="file-input" hidden>
+                            <div class="icon" id="resume-icon">📄</div>
+                            <h3 id="resume-text">Upload Your Resume</h3>
+                            <span>PDF format only</span>
+                        </div>
+                        <div class="file-drop-zone" id="transcript-dropzone" onclick="document.getElementById('transcript-upload').click()">
+                            <input type="file" id="transcript-upload" accept=".pdf" class="file-input" hidden>
+                            <div class="icon" id="transcript-icon">🎓</div>
+                            <h3 id="transcript-text">Upload Your Transcript</h3>
+                            <span>PDF format only</span>
+                        </div>
+                        <div class="file-drop-zone" id="projects-dropzone" onclick="document.getElementById('projects-upload').click()">
+                            <input type="file" id="projects-upload" accept=".pdf" class="file-input" hidden>
+                            <div class="icon" id="projects-icon">📂</div>
+                            <h3 id="projects-text">Upload Project Files (Optional)</h3>
+                            <span>PDF format only</span>
+                        </div>
+                    </div>
+                    
+                    <div id="loader-container" class="hidden">
+                        <p>Analyzing documents and building your resume...</p>
+                        <div class="loader"></div>
+                    </div>
+
+                    <button id="analyze-btn" class="btn" disabled>Analyze & Build My Resume</button>
+
+                    <div class="privacy-notice">
+                        <span class="icon">🔒</span>
+                        <span>Your data is private and secure. Files are deleted after processing.</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SCREEN 2: EDIT & VERIFY -->
+            <section id="edit-screen" class="screen hidden">
+                <div id="edit-container" class="edit-container">
+                    <div class="resume-panel">
+                        <div class="verification-header">
+                            <h2>Step 2: Verify Your Information</h2>
+                            <p>We've extracted the following from your documents. Please review, edit, and confirm each section. You can also drag and drop sections to reorder them.</p>
+                        </div>
+                        <div id="resume-preview">
+                            <!-- Draggable Resume Blocks will be inserted here by JS -->
+                        </div>
+                    </div>
+
+                    <aside id="ai-helper">
+                        <div class="ai-helper-card">
+                            <div class="ai-helper-header">
+                                <span class="icon">🤖</span>
+                                <div>
+                                    <h4>AI Assistant</h4>
+                                    <span id="ai-helper-context" style="font-size: 0.9rem; color: var(--text-secondary);">Editing: Experience</span>
+                                </div>
+                            </div>
+                            <div id="ai-helper-content">
+                                <!-- AI suggestions will be dynamically loaded here -->
+                            </div>
+                            <div class="ai-actions">
+                                <button class="btn btn-close-ai" id="close-ai-btn">Done Editing</button>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Screen Management ---
+            const uploadScreen = document.getElementById('upload-screen');
+            const editScreen = document.getElementById('edit-screen');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const loaderContainer = document.getElementById('loader-container');
+
+            // --- File Upload Logic ---
+            const fileInputs = document.querySelectorAll('.file-input');
+            const requiredInputs = ['resume-upload', 'transcript-upload'];
+            const uploadedFiles = new Set();
+
+            fileInputs.forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const dropzoneId = e.target.id.replace('-upload', '-dropzone');
+                    const dropzone = document.getElementById(dropzoneId);
+                    const iconEl = document.getElementById(e.target.id.replace('-upload', '-icon'));
+                    const textEl = document.getElementById(e.target.id.replace('-upload', '-text'));
+                    
+                    if (e.target.files.length > 0) {
+                        dropzone.classList.add('uploaded');
+                        iconEl.textContent = '✅';
+                        textEl.textContent = e.target.files[0].name;
+                        uploadedFiles.add(e.target.id);
+                    } else {
+                        dropzone.classList.remove('uploaded');
+                        // Reset text/icon if needed
+                        uploadedFiles.delete(e.target.id);
+                    }
+                    checkUploadCompletion();
+                });
+            });
+
+            function checkUploadCompletion() {
+                const allRequiredUploaded = requiredInputs.every(id => uploadedFiles.has(id));
+                analyzeBtn.disabled = !allRequiredUploaded;
+            }
+
+            analyzeBtn.addEventListener('click', () => {
+                analyzeBtn.classList.add('hidden');
+                loaderContainer.classList.remove('hidden');
+
+                setTimeout(() => {
+                    uploadScreen.style.opacity = '0';
+                    uploadScreen.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        uploadScreen.classList.add('hidden');
+                        editScreen.classList.remove('hidden');
+                        initializeEditScreen();
+                        setTimeout(() => {
+                            editScreen.style.opacity = '1';
+                            editScreen.style.transform = 'scale(1)';
+                        }, 50);
+                    }, 500);
+                }, 2500);
+            });
+
+            // --- Edit Screen Logic ---
+            const resumePreview = document.getElementById('resume-preview');
+            const editContainer = document.getElementById('edit-container');
+            const aiHelper = document.getElementById('ai-helper');
+            const aiHelperContext = document.getElementById('ai-helper-context');
+            const aiHelperContent = document.getElementById('ai-helper-content');
+            const closeAiBtn = document.getElementById('close-ai-btn');
+
+            const resumeData = {
+                header: {
+                    title: 'John Doe',
+                    content: `<p>Software Engineer | New York, NY | (123) 456-7890 | john.doe@email.com | linkedin.com/in/johndoe | github.com/johndoe</p>`
+                },
+                summary: {
+                    title: 'Summary',
+                    content: `<p>Innovative Software Engineer with 5+ years of experience in developing and scaling web applications using React, Node.js, and AWS. Proven ability to lead projects from conception to deployment. Passionate about clean code and user-centric design.</p>`
+                },
+                skills: {
+                    title: 'Technical Skills',
+                    content: `<p><strong>Languages:</strong> JavaScript (ES6+), TypeScript, Python, HTML5, CSS3</p>
+                              <p><strong>Frameworks/Libraries:</strong> React, Node.js, Express, Next.js</p>
+                              <p><strong>Databases:</strong> PostgreSQL, MongoDB, Redis</p>
+                              <p><strong>Cloud/DevOps:</strong> AWS (EC2, S3, Lambda), Docker, Jenkins, Git</p>`
+                },
+                experience: {
+                    title: 'Experience',
+                    content: `<h4>Senior Software Engineer</h4>
+                              <p><em>Tech Solutions Inc. | New York, NY | June 2020 - Present</em></p>
+                              <ul>
+                                <li>Led the development of a new microservices architecture, improving system scalability by 40%.</li>
+                                <li>Engineered a real-time data processing pipeline using AWS Lambda and Kinesis.</li>
+                                <li>Mentored 3 junior engineers, fostering a culture of collaboration and code quality.</li>
+                              </ul>`
+                },
+                education: {
+                    title: 'Education',
+                    content: `<h4>B.S. in Computer Science</h4>
+                              <p><em>State University | Anytown, USA | Graduated May 2018</em></p>
+                              <p><strong>Relevant Coursework:</strong> Data Structures, Algorithms, Web Development, Database Systems</p>`
+                },
+            };
+            
+            const aiSuggestions = {
+                 summary: `<strong>Suggestion:</strong> Use strong action verbs to start your sentences. Instead of "Responsible for developing...", try "Developed...".
+                           <br/><br/><strong>Tip:</strong> Quantify your achievements. How many users did your feature impact? By what percentage did you improve performance?`,
+                skills: `<strong>Suggestion:</strong> Consider creating a sub-section for 'Soft Skills' like 'Agile Methodologies', 'Team Leadership', or 'Problem-Solving'.
+                         <br/><br/><strong>Tip:</strong> Ensure the skills listed here are relevant to the job description you're targeting.`,
+                experience: `<strong>Suggestion:</strong> Start each bullet point with a powerful action verb (e.g., "Engineered," "Architected," "Implemented," "Optimized").
+                             <br/><br/><strong>Example:</strong> "Optimized database queries, resulting in a 30% reduction in page load times."`,
+                education: `<strong>Suggestion:</strong> If you have significant work experience, you can move the Education section below Experience.
+                            <br/><br/><strong>Tip:</strong> Include your GPA only if it's high (e.g., 3.5 or above).`,
+                header: `<strong>Suggestion:</strong> Ensure your LinkedIn and GitHub profiles are up-to-date and professional. They are often the first thing recruiters check.
+                         <br/><br/><strong>Tip:</strong> Use a professional email address, preferably yourname@domain.com.`
+            };
+
+            function initializeEditScreen() {
+                Object.keys(resumeData).forEach(key => {
+                    const blockData = resumeData[key];
+                    const block = document.createElement('div');
+                    block.className = 'resume-block';
+                    block.dataset.section = key;
+                    block.draggable = true;
+                    
+                    block.innerHTML = `
+                        <div class="resume-block-header">
+                            <h3>${blockData.title}</h3>
+                            <div class="block-actions">
+                                <button class="btn-confirm" data-section="${key}">
+                                    ✓ Confirm
+                                </button>
+                            </div>
+                        </div>
+                        <div class="resume-block-content">${blockData.content}</div>
+                    `;
+                    resumePreview.appendChild(block);
+                });
+                addBlockEventListeners();
+            }
+
+            function addBlockEventListeners() {
+                const blocks = document.querySelectorAll('.resume-block');
+                blocks.forEach(block => {
+                    // Click to Edit
+                    block.addEventListener('click', (e) => {
+                        if (e.target.classList.contains('btn-confirm')) return;
+                        openAiHelper(block.dataset.section);
+                    });
+                    
+                    // Drag and Drop
+                    block.addEventListener('dragstart', () => {
+                        block.classList.add('is-dragging');
+                    });
+                    block.addEventListener('dragend', () => {
+                        block.classList.remove('is-dragging');
+                    });
+                });
+                
+                const confirmButtons = document.querySelectorAll('.btn-confirm');
+                confirmButtons.forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const section = e.target.dataset.section;
+                        const block = document.querySelector(`.resume-block[data-section="${section}"]`);
+                        block.classList.add('is-confirmed');
+                        e.target.classList.add('confirmed');
+                        e.target.textContent = '✓ Confirmed';
+                    });
+                });
+            }
+            
+            resumePreview.addEventListener('dragover', e => {
+                e.preventDefault();
+                const afterElement = getDragAfterElement(resumePreview, e.clientY);
+                const draggable = document.querySelector('.is-dragging');
+                if (afterElement == null) {
+                    resumePreview.appendChild(draggable);
+                } else {
+                    resumePreview.insertBefore(draggable, afterElement);
+                }
+            });
+
+            function getDragAfterElement(container, y) {
+                const draggableElements = [...container.querySelectorAll('.resume-block:not(.is-dragging)')];
+
+                return draggableElements.reduce((closest, child) => {
+                    const box = child.getBoundingClientRect();
+                    const offset = y - box.top - box.height / 2;
+                    if (offset < 0 && offset > closest.offset) {
+                        return { offset: offset, element: child };
+                    } else {
+                        return closest;
+                    }
+                }, { offset: Number.NEGATIVE_INFINITY }).element;
+            }
+
+            function openAiHelper(sectionKey) {
+                editContainer.classList.add('is-editing');
+                const sectionTitle = resumeData[sectionKey].title;
+                aiHelperContext.textContent = `Editing: ${sectionTitle}`;
+                aiHelperContent.innerHTML = `<div class="ai-suggestion">${aiSuggestions[sectionKey] || 'No suggestions available for this section.'}</div>`;
+            }
+
+            closeAiBtn.addEventListener('click', () => {
+                editContainer.classList.remove('is-editing');
+            });
+
+        });
+    </script>
+
+</body>
+</html>

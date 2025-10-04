@@ -15,6 +15,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "pnpm": "^10.18.0",
     "zod": "^3.23.8"
   }
 }
