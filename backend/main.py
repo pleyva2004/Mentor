@@ -2,7 +2,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from provider import get_llm_provider
-from extract import parseLLMResponse
+from extract import parseLLMResponse, parseHTMLResponse
 import fitz
 
 from course_scraper import scrapeCourseRequirements
@@ -109,9 +109,165 @@ async def upload_resume(file: UploadFile = File(...)):
 
     course_work = scrapeCourseRequirements(college_name, major)
 
+    prompt_header = f"""
+   You are a structured information extraction assistant. Given the extracted plain text from a resume, your job is to identify and format the candidate's contact information into a single HTML paragraph tag in the following format:
+
+    OUTPUT FORMAT:
+    <p>Full Name | Job Title (if available, else skip) | Location (City, State) | Phone Number | Email Address | LinkedIn URL | GitHub URL</p>
+
+    If any field is missing from the resume text, omit it without adding a placeholder.
+
+    Only return the HTML string. Do not include any explanations or additional text.
+
+    Here is the resume text:
+
+    {extracted_text}
+
+    OUTPUT:
+
+    """
+
+    response = client.generate(prompt_header)
+    header = parseHTMLResponse(response)  # Clean HTML response
+
+    prompt_projects = f"""
+    You are a structured resume-to-HTML converter. Given plain extracted text from a resume that includes technical projects, your task is to identify and format **each project** into HTML using the following structure:
+
+    OUTPUT FORMAT:
+    <h4>Project Title</h4>
+    <p><em>Short Project Description | Technologies Used | Date</em></p>
+    <ul>
+    <li>First bullet about the project (quantified or results-oriented if available)</li>
+    <li>Second bullet about the project</li>
+    <li>Third bullet about the project</li>
+    </ul>
+    
+
+    Instructions:
+    - Each project should follow this format.
+    - Preserve technologies, tools, dates, and quantified results when mentioned.
+    - Only include what is available — if the date is missing, you can skip it in the <em> block.
+    - Do NOT hallucinate any content.
+    - Output valid HTML.
+    - Do not wrap the entire output in a single `<html>` or `<body>` tag. Just output the formatted blocks.
+
+    NOTHING BUT THE HTML OUTPUT. NO EXPLANATIONS, NO ADDITIONAL TEXT, NO COMMENTS, NO STEPS, NO THINGS LIKE THAT.
+
+    Here is the extracted resume text:
+
+    {extracted_text}
+
+    """
+
+    response = client.generate(prompt_projects)
+    projects = parseHTMLResponse(response)  # Clean HTML response
+
+    prompt_skills = f"""
+    You are a structured resume-to-HTML converter. Given plain extracted resume text that lists a candidate's technical skills, your task is to format the information into HTML paragraphs, grouping the skills into the following categories:
+
+    1. Languages
+    2. Frameworks/Libraries
+    3. Databases
+    4. Cloud/DevOps
+    5. AI/ML
+
+    OUTPUT FORMAT:
+
+    <p><strong>Languages:</strong> [comma-separated list]</p>  
+    <p><strong>Frameworks/Libraries:</strong> [comma-separated list]</p>  
+    <p><strong>Databases:</strong> [comma-separated list]</p>  
+    <p><strong>Cloud/DevOps:</strong> [comma-separated list]</p>
+
+    INSTRUCTIONS:
+    - Only include categories that appear in the input text. If a category is not present, skip it.
+    - Group tools under the most appropriate category (e.g., “AWS” goes under Cloud/DevOps, “React” under Frameworks/Libraries).
+    - Preserve the exact technology names and versions (e.g., "JavaScript (ES6+)", "AWS (EC2, S3, Lambda)").
+    - Do not hallucinate or infer missing tools.
+    - Output valid HTML only, no extra text.
+
+    NOTHING BUT THE HTML OUTPUT. NO EXPLANATIONS, NO ADDITIONAL TEXT, NO COMMENTS, NO STEPS, NO THINGS LIKE THAT.
+
+    Here is the extracted resume text:
+
+    {extracted_text}
+    """
+    response = client.generate(prompt_skills)
+    skills = parseHTMLResponse(response)  # Clean HTML response
+    
+    prompt_experience = f"""
+    You are a structured information extraction assistant. Given the extracted plain text from a resume, your job is to identify and format the candidate's experience into a single HTML paragraph tag in the following format:
+
+
+    OUTPUT FORMAT:
+
+    <h4>Job Title</h4>  
+    <p><em>Company Name | Location (City, State) | Start Date - End Date</em></p>  
+    <ul>  
+    <li>Responsibility or achievement 1 (quantified if available)</li>  
+    <li>Responsibility or achievement 2</li>  
+    <li>Responsibility or achievement 3</li>  
+    </ul>
+
+    INSTRUCTIONS:
+    - Format **each work experience** entry following this structure.
+    - Keep bullets factual, measurable, and written in past tense.
+    - Include up to **3 key bullet points** per job — prioritize technical achievements, leadership, and results.
+    - Use <em> for the company, location, and dates line.
+    - If a date is missing, leave it out.
+    - Do **not** add summary text or wrap in `<html>` or `<body>` tags.
+    - Do not hallucinate or infer missing content.
+
+    NOTHING BUT THE HTML OUTPUT. NO EXPLANATIONS, NO ADDITIONAL TEXT, NO COMMENTS, NO STEPS, NO THINGS LIKE THAT.
+
+    Here is the extracted resume text:
+
+    {extracted_text}
+    """
+
+    response = client.generate(prompt_experience)
+    experience = parseHTMLResponse(response)  # Clean HTML response
+
+    prompt_education = f"""
+    You are an HTML generator that converts education information from a resume into structured HTML.
+
+    Your goal is to extract the **degree**, **institution**, **location**, **graduation date**, and **relevant coursework** (if mentioned), and format it using the following structure:
+
+    OUTPUT FORMAT:
+
+    <h4>Degree</h4>  
+    <p><em>School Name | City, State | Graduated [Month Year]</em></p>  
+    <p><strong>Relevant Coursework:</strong> [comma-separated list]</p>
+
+    INSTRUCTIONS:
+
+    INSTRUCTIONS:
+    - Only return valid HTML.
+    - If relevant coursework is **not** mentioned, omit that line.
+    - If graduation date is missing, skip it in the <em> tag (but still include school and location).
+    - Do **not** hallucinate any information.
+    - Do not wrap in <html> or <body> tags.
+    
+
+    NOTHING BUT THE HTML OUTPUT. NO EXPLANATIONS, NO ADDITIONAL TEXT, NO COMMENTS, NO STEPS, NO THINGS LIKE THAT.
+
+    Here is the extracted resume text:
+
+    {extracted_text}
+
+    """
+
+    response = client.generate(prompt_education)
+    education = parseHTMLResponse(response)  # Clean HTML response
+    print(education)
+
     return JSONResponse(content={
         "filename": file.filename,
         "text": extracted_text,
+        "header": header,
+        "projects": projects,
+        "skills": skills,
+        "experience": experience,
+        "education": education,
         "course_work": course_work
     })
 

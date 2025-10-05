@@ -1,0 +1,81 @@
+{
+  "timestamp": "2025-10-05T01:26:55.735751",
+  "data": [
+    {
+      "course_number": "MATH 111",
+      "course_title": "Calculus I"
+    },
+    {
+      "course_number": "MATH 112",
+      "course_title": "Calculus II"
+    },
+    {
+      "course_number": "MATH 213",
+      "course_title": "Calculus III B"
+    },
+    {
+      "course_number": "MATH 227",
+      "course_title": "Mathematical Modeling"
+    },
+    {
+      "course_number": "MATH 244",
+      "course_title": "Introduction to Probability Theory"
+    },
+    {
+      "course_number": "MATH 333",
+      "course_title": "Probability and Statistics"
+    },
+    {
+      "course_number": "MATH 222",
+      "course_title": "Differential Equations"
+    },
+    {
+      "course_number": "MATH 337",
+      "course_title": "Linear Algebra"
+    },
+    {
+      "course_number": "MATH 340",
+      "course_title": "Applied Numerical Methods"
+    },
+    {
+      "course_number": "MATH 332",
+      "course_title": "Introduction to Functions of a Complex Variable"
+    },
+    {
+      "course_number": "MATH 473",
+      "course_title": "Intermediate Differential Equations"
+    },
+    {
+      "course_number": "MATH 480",
+      "course_title": "Introductory Mathematical Analysis"
+    },
+    {
+      "course_number": "MATH 331",
+      "course_title": "Introduction to Partial Differential Equations"
+    },
+    {
+      "course_number": "MATH 481",
+      "course_title": "Advanced Calculus"
+    },
+    {
+      "course_number": "MATH 450",
+      "course_title": "Methods Of Applied Math"
+    },
+    {
+      "course_number": "MATH 391",
+      "course_title": "Numerical Linear Algebra"
+    },
+    {
+      "course_number": "MATH 440",
+      "course_title": "Advanced Applied Numerical Methods"
+    },
+    {
+      "course_number": "MATH 448",
+      "course_title": "Stochastic Simulation"
+    },
+    {
+      "course_number": "MATH 451",
+      "course_title": "Methods Appl Math II"
+    }
+  ]
+}
