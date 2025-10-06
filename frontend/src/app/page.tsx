@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import CourseList, { Course } from '@/components/CourseList';
+import CursorPrompting from '@/components/CursorPrompting';
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
@@ -143,6 +144,22 @@ export default function Home() {
             />
           </div>
         )}
+
+        {/* Cursor Prompting Feature - Always available */}
+        <div className="mt-8 border-t pt-6">
+          <CursorPrompting
+            context={{
+              user_background: result ? 'Resume uploaded and processed' : 'No resume uploaded',
+              current_resume_section: result ? 'course_selection' : 'file_upload',
+              career_level: 'student', // This could be extracted from resume data
+              has_resume_data: !!result,
+              available_courses: courses.length,
+              selected_courses: selectedCourses.length
+            }}
+            placeholder="Ask me anything about your resume, career advice, or course selection..."
+            className="w-full"
+          />
+        </div>
       </div>
     </div>
   );

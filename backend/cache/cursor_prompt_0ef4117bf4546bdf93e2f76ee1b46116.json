@@ -1,0 +1,6 @@
+{
+  "timestamp": "2025-10-06T22:57:12.585922",
+  "data": {
+    "response": "Mock response for prompt: You are an AI assistant integrated into the Mentor... (This is a test response since no valid OpenAI API key is configured)"
+  }
+}

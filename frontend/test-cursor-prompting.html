@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursor Prompting Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-lg p-6 max-w-4xl w-full mx-4">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Cursor Prompting Feature Test</h1>
+        
+        <div class="space-y-4">
+            <div>
+                <label for="prompt" class="block text-sm font-medium text-gray-700 mb-2">
+                    Ask the AI Assistant:
+                </label>
+                <textarea
+                    id="prompt"
+                    placeholder="Ask me anything about your resume or career..."
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    rows="3"
+                    maxlength="2000"
+                ></textarea>
+                <div class="text-sm text-gray-500 mt-1">
+                    <span id="charCount">0</span>/2000 characters
+                </div>
+            </div>
+            
+            <div class="flex gap-2">
+                <button
+                    id="submitBtn"
+                    class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                >
+                    Ask AI
+                </button>
+                
+                <button
+                    id="clearBtn"
+                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                    Clear
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="hidden mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div class="flex items-center gap-2 text-blue-800">
+                <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                </svg>
+                AI is thinking...
+            </div>
+        </div>
+
+        <!-- Error Display -->
+        <div id="error" class="hidden mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <div class="text-red-800 text-sm">
+                <strong>Error:</strong> <span id="errorMessage"></span>
+            </div>
+        </div>
+
+        <!-- Response Display -->
+        <div id="response" class="hidden mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+            <div class="flex justify-between items-start mb-3">
+                <h4 class="font-medium text-gray-800">AI Response</h4>
+                <div class="text-xs text-gray-500 space-x-2">
+                    <span id="cachedBadge" class="hidden bg-green-100 text-green-800 px-2 py-1 rounded">
+                        Cached
+                    </span>
+                    <span id="processingTime"></span>
+                </div>
+            </div>
+            
+            <div id="responseText" class="text-gray-700 whitespace-pre-wrap leading-relaxed"></div>
+            
+            <div class="text-xs text-gray-400 mt-3">
+                Generated at <span id="timestamp"></span>
+            </div>
+        </div>
+
+        <!-- Context Information -->
+        <details class="mt-4">
+            <summary class="text-sm text-gray-600 cursor-pointer">
+                Context Information (for testing)
+            </summary>
+            <div class="mt-2 p-2 bg-gray-100 rounded text-xs text-gray-600">
+                <pre id="contextInfo">{
+  "user_background": "testing cursor prompting feature",
+  "current_resume_section": "test_page",
+  "career_level": "developer",
+  "has_resume_data": false,
+  "testing": true
+}</pre>
+            </div>
+        </details>
+    </div>
+
+    <script>
+        // Cursor Prompting Test Implementation
+        const promptTextarea = document.getElementById('prompt');
+        const charCount = document.getElementById('charCount');
+        const submitBtn = document.getElementById('submitBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        const errorMessage = document.getElementById('errorMessage');
+        const response = document.getElementById('response');
+        const responseText = document.getElementById('responseText');
+        const cachedBadge = document.getElementById('cachedBadge');
+        const processingTime = document.getElementById('processingTime');
+        const timestamp = document.getElementById('timestamp');
+
+        // Character count update
+        promptTextarea.addEventListener('input', () => {
+            charCount.textContent = promptTextarea.value.length;
+            submitBtn.disabled = !promptTextarea.value.trim();
+        });
+
+        // Clear functionality
+        clearBtn.addEventListener('click', () => {
+            promptTextarea.value = '';
+            charCount.textContent = '0';
+            submitBtn.disabled = true;
+            hideAllMessages();
+        });
+
+        // Submit functionality
+        submitBtn.addEventListener('click', async () => {
+            const prompt = promptTextarea.value.trim();
+            if (!prompt) {
+                showError('Please enter a prompt');
+                return;
+            }
+
+            hideAllMessages();
+            showLoading();
+            submitBtn.disabled = true;
+
+            try {
+                const requestBody = {
+                    prompt: prompt,
+                    context: {
+                        user_background: "testing cursor prompting feature",
+                        current_resume_section: "test_page",
+                        career_level: "developer",
+                        has_resume_data: false,
+                        testing: true
+                    }
+                };
+
+                const apiResponse = await fetch('http://localhost:8000/api/prompts/cursor', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer test-token-12345'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!apiResponse.ok) {
+                    if (apiResponse.status === 401) {
+                        throw new Error('Authentication required. Please log in.');
+                    } else if (apiResponse.status === 429) {
+                        throw new Error('Too many requests. Please wait a moment and try again.');
+                    } else if (apiResponse.status === 400) {
+                        const errorData = await apiResponse.json();
+                        throw new Error(errorData.detail || 'Invalid request');
+                    } else {
+                        throw new Error('Failed to get response. Please try again.');
+                    }
+                }
+
+                const responseData = await apiResponse.json();
+                showResponse(responseData);
+                
+            } catch (err) {
+                console.error('Cursor prompting error:', err);
+                showError(err.message || 'An unexpected error occurred');
+            } finally {
+                hideLoading();
+                submitBtn.disabled = false;
+            }
+        });
+
+        function hideAllMessages() {
+            loading.classList.add('hidden');
+            error.classList.add('hidden');
+            response.classList.add('hidden');
+        }
+
+        function showLoading() {
+            loading.classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            loading.classList.add('hidden');
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            error.classList.remove('hidden');
+        }
+
+        function showResponse(data) {
+            responseText.textContent = data.response;
+            processingTime.textContent = data.processing_time_ms + 'ms';
+            timestamp.textContent = new Date(data.timestamp * 1000).toLocaleString();
+            
+            if (data.cached) {
+                cachedBadge.classList.remove('hidden');
+            } else {
+                cachedBadge.classList.add('hidden');
+            }
+            
+            response.classList.remove('hidden');
+        }
+
+        // Initialize
+        submitBtn.disabled = true;
+    </script>
+</body>
+</html>
