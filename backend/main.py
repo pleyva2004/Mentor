@@ -1,15 +1,29 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from provider import get_llm_provider
 from extract import parseLLMResponse, parseHTMLResponse
 import fitz
 
 from course_scraper import scrapeCourseRequirements
+from prompting import prompting_service, CursorPromptRequest, CursorPromptResponse
+from security import (
+    verify_token_with_rate_limit, 
+    sanitize_input, 
+    sanitize_context,
+    validate_prompt_length,
+    validate_session_id,
+    add_security_headers
+)
+from performance import get_performance_stats, cache_cleanup_task
+import asyncio
 
 app = FastAPI(title="Mentor Resume Parser", description="FastAPI app for PDF resume processing")
 client = get_llm_provider(provider="openai")
 
+# Add security headers middleware
+app.middleware("http")(add_security_headers)
 
 app.add_middleware(
     CORSMiddleware,
@@ -274,3 +288,64 @@ async def upload_resume(file: UploadFile = File(...)):
 @app.get("/")
 async def root():
     return {"message": "Mentor Resume Parser API"}
+
+@app.post("/api/prompts/cursor", response_model=CursorPromptResponse)
+async def cursor_prompt(
+    request: CursorPromptRequest,
+    req: Request,
+    token: str = Depends(verify_token_with_rate_limit)
+):
+    """
+    Process a cursor prompt request with context-aware assistance.
+    Requires authentication via Bearer token and enforces rate limiting.
+    """
+    # Sanitize and validate inputs
+    sanitized_prompt = validate_prompt_length(request.prompt)
+    sanitized_context = sanitize_context(request.context or {})
+    sanitized_session_id = validate_session_id(request.session_id)
+    
+    # Create sanitized request
+    sanitized_request = CursorPromptRequest(
+        prompt=sanitized_prompt,
+        context=sanitized_context,
+        session_id=sanitized_session_id,
+        max_tokens=min(request.max_tokens or 1000, 2000)  # Cap max tokens
+    )
+    
+    return await prompting_service.process_prompt(sanitized_request)
+
+@app.get("/api/prompts/suggestions")
+async def get_prompt_suggestions(
+    current_section: str = None,
+    req: Request = None,
+    token: str = Depends(verify_token_with_rate_limit)
+):
+    """
+    Get contextual prompt suggestions based on current user state.
+    Rate limited to prevent abuse.
+    """
+    context = {}
+    if current_section:
+        # Sanitize the section name
+        context["current_section"] = sanitize_input(current_section, 50)
+    
+    suggestions = prompting_service.get_prompt_suggestions(context)
+    return {"suggestions": suggestions}
+
+@app.get("/api/prompts/performance")
+async def get_performance_metrics(
+    req: Request = None,
+    token: str = Depends(verify_token_with_rate_limit)
+):
+    """
+    Get performance metrics for the cursor prompting system.
+    Requires authentication. Useful for monitoring and optimization.
+    """
+    return get_performance_stats()
+
+# Start background tasks when the app starts
+@app.on_event("startup")
+async def startup_event():
+    """Start background tasks on app startup"""
+    # Start cache cleanup task
+    asyncio.create_task(cache_cleanup_task())

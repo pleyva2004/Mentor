@@ -11,6 +11,7 @@ interface ResumeStore {
   resumeData: ResumeData;
   currentScreen: 'upload' | 'edit';
   processingError: string | null; // Add error state
+  currentEditingSection: ResumeSection | null; // Track which section is being edited
   
   // Actions
   updateResumeBlock: (section: ResumeSection, updates: Partial<ResumeBlock>) => void;
@@ -21,13 +22,16 @@ interface ResumeStore {
   resetResumeData: () => void;
   setProcessedResumeData: (backendData: any) => void; // Add this new action
   setProcessingError: (error: string | null) => void; // Add error action
+  setCurrentEditingSection: (section: ResumeSection | null) => void;
+  getCurrentSection: () => ResumeSection | null;
 }
 
-export const useResumeStore = create<ResumeStore>((set) => ({
+export const useResumeStore = create<ResumeStore>((set, get) => ({
   // Initial state
   resumeData: sampleResumeData,
   currentScreen: 'upload',
   processingError: null, // Initialize error state
+  currentEditingSection: null,
 
   // Actions
   updateResumeBlock: (section: ResumeSection, updates: Partial<ResumeBlock>) => {
@@ -152,5 +156,13 @@ export const useResumeStore = create<ResumeStore>((set) => ({
 
   resetResumeData: () => {
     set({ resumeData: sampleResumeData });
+  },
+  
+  setCurrentEditingSection: (section: ResumeSection | null) => {
+    set({ currentEditingSection: section });
+  },
+  
+  getCurrentSection: () => {
+    return get().currentEditingSection;
   },
 }));
