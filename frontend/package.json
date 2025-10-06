@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:e2e": "cypress open",
+    "test:e2e:ci": "cypress run"
   },
   "dependencies": {
     "react": "19.1.0",
@@ -22,6 +24,7 @@
     "tailwindcss": "^4",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
-    "@eslint/eslintrc": "^3"
+    "@eslint/eslintrc": "^3",
+    "cypress": "^13.0.0"
   }
 }

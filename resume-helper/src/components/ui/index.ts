@@ -6,3 +6,4 @@ export { Button } from './Button';
 export { Card } from './Card';
 export { FileDropzone } from './FileDropzone';
 export { LoadingSpinner } from './LoadingSpinner';
+export { CursorPrompt } from './CursorPrompt';

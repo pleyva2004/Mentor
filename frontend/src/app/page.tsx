@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import CourseList, { Course } from '@/components/CourseList';
+import CursorPrompt from '@/components/CursorPrompt';
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
@@ -145,5 +146,20 @@ export default function Home() {
         )}
       </div>
     </div>
+    
+    {/* Cursor Prompt Component */}
+    <CursorPrompt
+      currentSection={result ? 'course_selection' : 'upload'}
+      context={{
+        hasResumeUploaded: !!result,
+        selectedCourses: selectedCourses,
+        coursesAvailable: courses.length,
+        userData: result ? {
+          name: 'User', // Extract from header if available
+          major: result.major || 'Unknown'
+        } : undefined
+      }}
+      authToken="demo-token" // In production, get from auth context
+    />
   );
 }

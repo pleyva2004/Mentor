@@ -6,6 +6,7 @@
 
 import React from 'react';
 import { ResumePreview, VerificationHeader, AIHelperPanel } from '@/components/resume';
+import { CursorPrompt } from '@/components/ui';
 import { useEditMode } from '@/hooks/useEditMode';
 
 export const EditScreen: React.FC = () => {
@@ -23,6 +24,9 @@ export const EditScreen: React.FC = () => {
         activeSection={activeSection}
         onClose={handleExitEditMode}
       />
+      
+      {/* Cursor Prompt AI Assistant */}
+      <CursorPrompt />
     </div>
   );
 };

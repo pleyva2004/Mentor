@@ -955,5 +955,51 @@ For questions about architectural decisions or to propose changes, please refer 
 
 ---
 
+---
+
+## Cursor Prompting Feature (New)
+
+**Added**: October 6, 2025
+**Status**: ✅ Implemented and Tested
+
+### Overview
+Real-time AI assistance feature providing context-aware help throughout the application.
+
+### Key Components
+
+#### Backend
+- `prompting.py`: Core prompting service with LLM integration
+- `cursor_prompts.py`: Specialized prompt templates and engineering
+- `security.py`: Authentication, rate limiting, input sanitization
+- `performance.py`: Advanced caching, response optimization, metrics
+
+#### Frontend
+- `CursorPrompt.tsx`: Floating chat interface component
+- Context-aware state management
+- Real-time response handling with preview
+
+### API Endpoints
+- `POST /api/prompts/cursor`: Process cursor prompts
+- `GET /api/prompts/suggestions`: Get contextual suggestions
+- `GET /api/prompts/performance`: Performance metrics
+
+### Features
+- **Context Awareness**: Tracks current page, section, user data
+- **Smart Caching**: Semantic key generation, LRU eviction
+- **Security**: Rate limiting (30 req/min), input sanitization
+- **Performance**: Response preview, async processing
+- **Testing**: Comprehensive unit, integration, and E2E tests
+
+### Usage
+Users can click the floating AI assistant button to get instant help with:
+- Resume improvement suggestions
+- Section-specific guidance
+- Course selection advice
+- General application help
+
+For detailed documentation, see [CURSOR_PROMPTING_DOCUMENTATION.md](./CURSOR_PROMPTING_DOCUMENTATION.md)
+
+---
+
 **Last Updated**: 2025-10-06
-**Documentation Version**: 1.0
+**Documentation Version**: 1.1
