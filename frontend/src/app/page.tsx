@@ -2,20 +2,46 @@
 
 import { useState } from 'react';
 import CourseList, { Course } from '@/components/CourseList';
+import type { CursorPromptResponse } from '@/types/prompting';
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<{ text: string; character_count: number } | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [promptInput, setPromptInput] = useState('');
+  const [isPrompting, setIsPrompting] = useState(false);
+  const [promptResponse, setPromptResponse] = useState<CursorPromptResponse | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
       setResult(null);
       setError(null);
+    }
+  };
+
+  const handlePrompt = async () => {
+    if (!promptInput.trim()) return;
+    setIsPrompting(true);
+    setPromptResponse(null);
+    try {
+      const res = await fetch('/api/prompts/cursor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: promptInput, context: { selectedCourses } }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || 'Prompt failed');
+      }
+      setPromptResponse(data as CursorPromptResponse);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Prompt failed');
+    } finally {
+      setIsPrompting(false);
     }
   };
 
@@ -49,7 +75,7 @@ export default function Home() {
 
       // Transform backend course_work format to component format
       if (data.course_work && Array.isArray(data.course_work)) {
-        const transformedCourses = data.course_work.map((course: any) => ({
+        const transformedCourses = data.course_work.map((course: { course_number: string; course_title: string }) => ({
           id: course.course_number,
           name: course.course_title,
           code: course.course_number
@@ -143,6 +169,37 @@ export default function Home() {
             />
           </div>
         )}
+
+        <div className="mt-8 border-t pt-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            Cursor Prompting
+          </h2>
+          <div className="space-y-3">
+            <textarea
+              value={promptInput}
+              onChange={(e) => setPromptInput(e.target.value)}
+              placeholder="Ask Mentor to help..."
+              className="w-full h-28 border rounded-md p-3 text-sm"
+            />
+            <button
+              onClick={handlePrompt}
+              disabled={isPrompting || !promptInput.trim()}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-md transition-colors"
+            >
+              {isPrompting ? 'Thinking...' : 'Ask Mentor'}
+            </button>
+          </div>
+
+          {promptResponse && (
+            <div className="mt-6">
+              <h3 className="font-semibold text-gray-800 mb-2">Response</h3>
+              <div className="bg-gray-50 rounded-md p-4 prose prose-sm max-w-none">
+                <pre className="whitespace-pre-wrap text-sm">{promptResponse.responseText}</pre>
+                <div className="text-xs text-gray-500 mt-2">Model: {promptResponse.model}</div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

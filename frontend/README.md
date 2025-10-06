@@ -34,3 +34,33 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Cursor Prompting API
+
+A Next.js API route is available at `POST /api/prompts/cursor`.
+
+Request body:
+
+```json
+{
+  "input": "string (required)",
+  "context": { "any": "json" }
+}
+```
+
+Response body:
+
+```json
+{
+  "responseText": "string",
+  "model": "string",
+  "meta": { "usage": { "promptTokens": 0, "completionTokens": 0, "totalTokens": 0 } }
+}
+```
+
+Environment variables (see `.env.local.example`):
+
+- `OPENAI_API_KEY` – optional, enables real LLM; without it a mock response is returned.
+- `OPENAI_API_MODEL` – optional model override.
+- `PROMPT_RATE_LIMIT` and `PROMPT_RATE_INTERVAL_MS` – rate limiting controls.
+
