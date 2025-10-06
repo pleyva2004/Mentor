@@ -30,7 +30,7 @@ sleep 2
 
 # Start frontend server
 echo "Starting Next.js frontend on http://localhost:3000"
-cd resume-helper
+cd frontend
 pnpm run dev &
 FRONTEND_PID=$!
 cd ..
