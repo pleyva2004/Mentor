@@ -12,9 +12,14 @@ export function useEditMode() {
     activeSection,
     resumePanelWidth,
     aiPanelVisible,
+    cursorPosition,
+    currentContent,
     enterEditMode,
     exitEditMode,
     setActiveSection,
+    setCursorPosition,
+    setCurrentContent,
+    updateCursorContent,
   } = useEditModeStore();
 
   const handleEnterEditMode = useCallback(
@@ -44,9 +49,14 @@ export function useEditMode() {
     activeSection,
     resumePanelWidth,
     aiPanelVisible,
+    cursorPosition,
+    currentContent,
     handleEnterEditMode,
     handleExitEditMode,
     handleSectionClick,
     setActiveSection,
+    setCursorPosition,
+    setCurrentContent,
+    updateCursorContent,
   };
 }
