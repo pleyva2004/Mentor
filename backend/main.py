@@ -3,12 +3,39 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from provider import get_llm_provider
 from extract import parseLLMResponse, parseHTMLResponse
+from cursor_prompting import CursorPromptingService, CursorContext, PromptSuggestion
 import fitz
 
 from course_scraper import scrapeCourseRequirements
+from pydantic import BaseModel
+from typing import Dict, Any, Optional
 
 app = FastAPI(title="Mentor Resume Parser", description="FastAPI app for PDF resume processing")
 client = get_llm_provider(provider="openai")
+
+# Initialize cursor prompting service
+cursor_service = CursorPromptingService()
+
+# Pydantic models for cursor prompting
+class CursorPromptRequest(BaseModel):
+    active_section: str
+    cursor_position: int
+    current_content: str
+    resume_context: Dict[str, Any]
+    user_intent: Optional[str] = None
+
+class PromptSuggestionResponse(BaseModel):
+    id: str
+    type: str
+    title: str
+    description: str
+    suggested_text: str
+    confidence: float
+    reasoning: str
+
+class CursorPromptResponse(BaseModel):
+    suggestions: list[PromptSuggestionResponse]
+    completion_suggestion: Optional[PromptSuggestionResponse] = None
 
 
 app.add_middleware(
@@ -270,6 +297,64 @@ async def upload_resume(file: UploadFile = File(...)):
         "education": education,
         "course_work": course_work
     })
+
+@app.post("/api/prompts/cursor", response_model=CursorPromptResponse)
+async def get_cursor_suggestions(request: CursorPromptRequest):
+    """
+    Get real-time cursor prompting suggestions for resume editing
+
+    This endpoint provides context-aware suggestions based on the current
+    editing context, cursor position, and resume content.
+    """
+    try:
+        # Create cursor context from request
+        context = CursorContext(
+            active_section=request.active_section,
+            cursor_position=request.cursor_position,
+            current_content=request.current_content,
+            resume_context=request.resume_context,
+            user_intent=request.user_intent
+        )
+
+        # Get suggestions from service
+        suggestions = cursor_service.analyze_context(context)
+
+        # Try to get completion suggestion if appropriate
+        completion_suggestion = cursor_service.generate_completion_suggestion(context)
+
+        # Convert to response format
+        suggestion_responses = [
+            PromptSuggestionResponse(
+                id=suggestion.id,
+                type=suggestion.type,
+                title=suggestion.title,
+                description=suggestion.description,
+                suggested_text=suggestion.suggested_text,
+                confidence=suggestion.confidence,
+                reasoning=suggestion.reasoning
+            )
+            for suggestion in suggestions
+        ]
+
+        completion_response = None
+        if completion_suggestion:
+            completion_response = PromptSuggestionResponse(
+                id=completion_suggestion.id,
+                type=completion_suggestion.type,
+                title=completion_suggestion.title,
+                description=completion_suggestion.description,
+                suggested_text=completion_suggestion.suggested_text,
+                confidence=completion_suggestion.confidence,
+                reasoning=completion_suggestion.reasoning
+            )
+
+        return CursorPromptResponse(
+            suggestions=suggestion_responses,
+            completion_suggestion=completion_response
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating cursor suggestions: {str(e)}")
 
 @app.get("/")
 async def root():

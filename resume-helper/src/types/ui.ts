@@ -47,4 +47,6 @@ export interface EditModeState {
   activeSection: ResumeSection | null;
   resumePanelWidth: 'full' | 'reduced';
   aiPanelVisible: boolean;
+  cursorPosition: number;
+  currentContent: string;
 }
