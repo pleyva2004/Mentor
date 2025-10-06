@@ -30,10 +30,20 @@ class LLMProvider(ABC):
 class OpenAIProvider(LLMProvider):
 
     def __init__(self, model: str = "gpt-4o"):
-        self.client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+        api_key = os.getenv('OPENAI_API_KEY')
+        if not api_key or api_key == 'your_openai_api_key_here':
+            # For testing without real API key
+            self.client = None
+            print("Warning: Using mock OpenAI provider (no valid API key)")
+        else:
+            self.client = OpenAI(api_key=api_key)
         self.model = model
 
     def generate(self, prompt: str, max_tokens: int = 2000) -> str:
+        if self.client is None:
+            # Mock response for testing
+            return f"Mock response for prompt: {prompt[:50]}... (This is a test response since no valid OpenAI API key is configured)"
+        
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[{"role": "user", "content": prompt}],

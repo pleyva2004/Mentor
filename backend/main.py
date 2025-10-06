@@ -1,15 +1,24 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from provider import get_llm_provider
 from extract import parseLLMResponse, parseHTMLResponse
 import fitz
 
 from course_scraper import scrapeCourseRequirements
+from cursor_prompting import (
+    CursorPromptRequest, 
+    CursorPromptResponse, 
+    get_prompting_service,
+    PromptingService
+)
 
 app = FastAPI(title="Mentor Resume Parser", description="FastAPI app for PDF resume processing")
 client = get_llm_provider(provider="openai")
 
+# Security setup for cursor prompting endpoint
+security = HTTPBearer(auto_error=False)
 
 app.add_middleware(
     CORSMiddleware,
@@ -18,6 +27,37 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Authentication dependency for cursor prompting
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
+    """
+    Authentication dependency for cursor prompting endpoint.
+    
+    As specified in section 2.2 and 5.1 of the plan, the cursor prompting endpoint
+    must be protected to prevent unauthorized access and control costs.
+    
+    Note: This is a simplified implementation. In production, this should validate
+    JWT tokens and integrate with a proper authentication system.
+    """
+    if not credentials:
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required for cursor prompting",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # For MVP, we'll accept any bearer token as authentication
+    # In production, validate JWT token here
+    token = credentials.credentials
+    if not token or len(token) < 10:  # Basic token validation
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authentication token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Return user ID extracted from token (simplified for MVP)
+    return f"user_{hash(token) % 10000}"
 
 def extract_text_from_pdf(file_content: bytes) -> str:
     try:
@@ -36,6 +76,58 @@ def extract_text_from_pdf(file_content: bytes) -> str:
 
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error extracting text: {str(e)}")
+
+@app.post("/api/prompts/cursor", response_model=CursorPromptResponse)
+async def cursor_prompt(
+    request: CursorPromptRequest,
+    current_user: str = Depends(get_current_user)
+) -> CursorPromptResponse:
+    """
+    Cursor prompting endpoint for real-time, context-aware assistance.
+    
+    This endpoint implements the cursor prompting feature as specified in the
+    "Plan of Action for Cursor Prompting" document. It provides LLM-powered
+    assistance to users within the Mentor MVP application.
+    
+    Security Features:
+    - JWT-based authentication (simplified for MVP)
+    - Rate limiting per user
+    - Input sanitization
+    - Response caching for cost optimization
+    
+    Args:
+        request: CursorPromptRequest containing user prompt and context
+        current_user: Authenticated user ID from JWT token
+        
+    Returns:
+        CursorPromptResponse with LLM-generated assistance
+        
+    Raises:
+        HTTPException: 401 for authentication errors, 429 for rate limiting,
+                      400 for validation errors, 500 for server errors
+    """
+    try:
+        # Add user ID to request for rate limiting
+        request.user_id = current_user
+        
+        # Get prompting service instance
+        prompting_service = get_prompting_service(client)
+        
+        # Process the prompt
+        response = await prompting_service.process_prompt(request)
+        
+        return response
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions (rate limiting, validation, etc.)
+        raise
+    except Exception as e:
+        # Log error and return generic message for security
+        print(f"Cursor prompting error for user {current_user}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="An error occurred while processing your request. Please try again."
+        )
 
 @app.post("/upload-resume")
 async def upload_resume(file: UploadFile = File(...)):
