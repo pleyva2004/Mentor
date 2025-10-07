@@ -34,17 +34,23 @@ class OpenAIProvider(LLMProvider):
         self.model = model
 
     def generate(self, prompt: str, max_tokens: int = 2000) -> str:
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=max_tokens
-        )
-        return response.choices[0].message.content.strip()
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=max_tokens
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            if "429" in str(e) or "quota" in str(e).lower():
+                raise Exception(f"OpenAI API quota exceeded. Please check your billing: {str(e)}")
+            else:
+                raise Exception(f"OpenAI API error: {str(e)}")
 
 
 class AnthropicProvider(LLMProvider):
 
-    def __init__(self, model: str = "claude-sonnet-4-20250514"):
+    def __init__(self, model: str = "claude-3-5-sonnet-20241022"):
         self.client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
         self.model = model
 

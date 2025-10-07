@@ -21,7 +21,13 @@ trap cleanup SIGINT SIGTERM
 # Start backend server
 echo "Starting FastAPI backend on http://localhost:8000"
 cd backend
-poetry run uvicorn main:app --reload --port 8000 &
+# Try poetry first, fallback to python if poetry not available
+if command -v poetry &> /dev/null; then
+    poetry run uvicorn main:app --reload --port 8000 &
+else
+    echo "Poetry not found, using python directly..."
+    python main.py &
+fi
 BACKEND_PID=$!
 cd ..
 
@@ -31,7 +37,13 @@ sleep 2
 # Start frontend server
 echo "Starting Next.js frontend on http://localhost:3000"
 cd frontend
-pnpm run dev &
+# Try pnpm first, fallback to npm if pnpm not available
+if command -v pnpm &> /dev/null; then
+    pnpm run dev &
+else
+    echo "pnpm not found, using npm..."
+    npm run dev &
+fi
 FRONTEND_PID=$!
 cd ..
 

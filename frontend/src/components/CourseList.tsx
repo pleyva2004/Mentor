@@ -12,9 +12,10 @@ export interface Course {
 interface CourseListProps {
   courses: Course[];
   onSelectionChange?: (selectedCourses: string[]) => void;
+  isSampleData?: boolean;
 }
 
-export default function CourseList({ courses, onSelectionChange }: CourseListProps) {
+export default function CourseList({ courses, onSelectionChange, isSampleData = false }: CourseListProps) {
   const [selectedCourses, setSelectedCourses] = useState<Set<string>>(new Set());
 
   const toggleCourse = (courseId: string) => {
@@ -36,9 +37,16 @@ export default function CourseList({ courses, onSelectionChange }: CourseListPro
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-800">
-          Select Your Completed Courses
-        </h2>
+        <div>
+          <h2 className="text-xl font-semibold text-gray-800">
+            Select Your Completed Courses
+          </h2>
+          {isSampleData && (
+            <p className="text-sm text-amber-600 mt-1">
+              Showing sample courses (course scraping temporarily unavailable)
+            </p>
+          )}
+        </div>
         {selectedCourses.size > 0 && (
           <button
             onClick={clearSelection}
@@ -62,8 +70,26 @@ export default function CourseList({ courses, onSelectionChange }: CourseListPro
       </div>
 
       {courses.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          No courses available. Upload your resume to get started.
+        <div className="text-center py-8">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+            <div className="text-yellow-600 mb-2">
+              <svg className="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-yellow-800 mb-2">
+              Course Scraping Temporarily Unavailable
+            </h3>
+            <p className="text-yellow-700 mb-4">
+              Due to API quota limits, course recommendations are not available right now. 
+              You can still edit your education section manually below.
+            </p>
+            <div className="text-sm text-yellow-600">
+              <p>• Your resume has been processed successfully</p>
+              <p>• You can edit all sections manually</p>
+              <p>• Course recommendations will be available once quota is restored</p>
+            </div>
+          </div>
         </div>
       )}
     </div>
