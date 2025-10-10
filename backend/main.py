@@ -193,6 +193,8 @@ async def upload_resume(file: UploadFile = File(...)):
 
     extracted_text = extract_text_from_pdf(content)
 
+    # Generate unique resume ID early for error handling
+    resume_id = str(uuid.uuid4())
 
     prompt = f"""
     You are an information extraction system. You will receive the full extracted text of a resume.  
@@ -251,7 +253,9 @@ async def upload_resume(file: UploadFile = File(...)):
         major = parsed_response["major"]
         graduation_year = parsed_response["graduation_year"]
 
+        print(f"🔍 Extracted from resume - College: {college_name}, Major: {major}")
         course_work = scrapeCourseRequirements(college_name, major)
+        print(f"📚 Found {len(course_work)} courses for {college_name} {major}")
     except Exception as e:
         print(f"Error in LLM processing: {e}")
         # Fallback values if API fails
@@ -294,8 +298,12 @@ async def upload_resume(file: UploadFile = File(...)):
     try:
         response = client.generate(prompt_header)
         header = parseHTMLResponse(response)  # Clean HTML response
+        print(f"Header processing successful: {header[:100]}...")
     except Exception as e:
         print(f"Error in header processing: {e}")
+        print(f"Exception type: {type(e).__name__}")
+        import traceback
+        traceback.print_exc()
         header = "<p>Contact information not available</p>"
         # If quota exceeded, return early
         if "quota" in str(e).lower() or "429" in str(e):
@@ -464,8 +472,7 @@ async def upload_resume(file: UploadFile = File(...)):
         print(f"Error in education processing: {e}")
         education = parse_raw_text_for_section('education', extracted_text)
 
-    # Generate unique resume ID and save data
-    resume_id = str(uuid.uuid4())
+    # Save data (resume_id already generated)
     resume_data = {
         "resume_id": resume_id,
         "filename": file.filename,
@@ -631,6 +638,274 @@ async def integrate_courses(resume_id: str, selected_courses: list):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error integrating courses: {str(e)}")
+
+@app.post("/improve-text")
+async def improve_text(text: str, improvement_type: str, context: str = ""):
+    """
+    Improve text using AI based on improvement type
+    Types: 'rephrase', 'add-action-verb', 'quantify', 'grammar'
+    """
+    prompts = {
+        'rephrase': f"Improve this resume text to be more impactful and professional. Context: {context}\n\nText: {text}\n\nReturn ONLY the improved text, no explanations.",
+        'add-action-verb': f"Rewrite this bullet point starting with a strong action verb (Engineered, Implemented, Architected, etc.). Context: {context}\n\nText: {text}\n\nReturn ONLY the rewritten text.",
+        'quantify': f"Add quantifiable metrics to this achievement. If specific numbers aren't known, suggest realistic placeholders like [X%] or [N users]. Context: {context}\n\nText: {text}\n\nReturn ONLY the improved text.",
+        'grammar': f"Fix any grammar, spelling, or punctuation issues. Context: {context}\n\nText: {text}\n\nReturn ONLY the corrected text."
+    }
+    
+    try:
+        response = client.generate(prompts[improvement_type])
+        return JSONResponse(content={
+            "success": True,
+            "original": text,
+            "improved": response.strip(),
+            "type": improvement_type
+        })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error improving text: {str(e)}")
+
+@app.post("/update-field")
+async def update_field(resume_id: str, section_id: str, field_type: str, field_id: str, content: str):
+    """Update a specific field within a section"""
+    try:
+        resume_data = load_resume_data(resume_id)
+        if not resume_data:
+            raise HTTPException(status_code=404, detail="Resume not found")
+        
+        if 'field_updates' not in resume_data:
+            resume_data['field_updates'] = {}
+        
+        field_key = f"{section_id}_{field_type}_{field_id}"
+        resume_data['field_updates'][field_key] = {
+            'content': content,
+            'updated_at': datetime.now().isoformat()
+        }
+        
+        resume_data['updated_at'] = datetime.now().isoformat()
+        save_resume_data(resume_id, resume_data)
+        
+        return JSONResponse(content={
+            "success": True,
+            "field_key": field_key,
+            "content": content
+        })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating field: {str(e)}")
+
+@app.post("/validate-education")
+async def validate_education(school: str, major: str):
+    """Validate if school and major combination exists in course catalog"""
+    try:
+        # Check if we can scrape courses for this combination
+        from course_scraper import scrapeCourseRequirements
+        courses = scrapeCourseRequirements(school, major)
+        
+        return {
+            "valid": True,
+            "can_scrape_courses": len(courses) > 0,
+            "course_count": len(courses),
+            "suggestions": []
+        }
+    except Exception as e:
+        return {
+            "valid": False,
+            "can_scrape_courses": False,
+            "course_count": 0,
+            "suggestions": [],
+            "error": str(e)
+        }
+
+@app.post("/associate-project")
+async def associate_project(resume_id: str, course_code: str, project: dict):
+    """Associate a project with a specific course"""
+    try:
+        resume_data = load_resume_data(resume_id)
+        if not resume_data:
+            raise HTTPException(status_code=404, detail="Resume not found")
+        
+        if 'projects' not in resume_data:
+            resume_data['projects'] = {}
+        
+        resume_data['projects'][course_code] = project
+        resume_data['updated_at'] = datetime.now().isoformat()
+        save_resume_data(resume_id, resume_data)
+        
+        return {"success": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error associating project: {str(e)}")
+
+@app.post("/add-work-experience")
+async def add_work_experience(resume_id: str, experience: dict):
+    """Add work experience entry"""
+    try:
+        resume_data = load_resume_data(resume_id)
+        if not resume_data:
+            raise HTTPException(status_code=404, detail="Resume not found")
+        
+        if 'work_experiences' not in resume_data:
+            resume_data['work_experiences'] = []
+        
+        resume_data['work_experiences'].append(experience)
+        resume_data['updated_at'] = datetime.now().isoformat()
+        save_resume_data(resume_id, resume_data)
+        
+        return {"success": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error adding work experience: {str(e)}")
+
+@app.put("/update-work-experience")
+async def update_work_experience(resume_id: str, index: int, experience: dict):
+    """Update specific work experience by index"""
+    try:
+        resume_data = load_resume_data(resume_id)
+        if not resume_data:
+            raise HTTPException(status_code=404, detail="Resume not found")
+        
+        if 'work_experiences' not in resume_data:
+            resume_data['work_experiences'] = []
+        
+        if index < len(resume_data['work_experiences']):
+            resume_data['work_experiences'][index] = experience
+            resume_data['updated_at'] = datetime.now().isoformat()
+            save_resume_data(resume_id, resume_data)
+            return {"success": True}
+        else:
+            raise HTTPException(status_code=400, detail="Invalid experience index")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating work experience: {str(e)}")
+
+@app.delete("/remove-work-experience")
+async def remove_work_experience(resume_id: str, index: int):
+    """Remove work experience by index"""
+    try:
+        resume_data = load_resume_data(resume_id)
+        if not resume_data:
+            raise HTTPException(status_code=404, detail="Resume not found")
+        
+        if 'work_experiences' in resume_data and index < len(resume_data['work_experiences']):
+            resume_data['work_experiences'].pop(index)
+            resume_data['updated_at'] = datetime.now().isoformat()
+            save_resume_data(resume_id, resume_data)
+            return {"success": True}
+        else:
+            raise HTTPException(status_code=400, detail="Invalid experience index")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error removing work experience: {str(e)}")
+
+@app.post("/scrape-courses")
+async def scrape_courses_endpoint(request: Request):
+    """Fetch course catalog for school/major"""
+    try:
+        # Parse request body
+        body = await request.json()
+        school = body.get('school')
+        major = body.get('major')
+        resume_id = body.get('resume_id')
+        
+        if not school or not major:
+            raise HTTPException(status_code=400, detail="School and major are required")
+        
+        print(f"📡 Scraping courses for: {school} | {major}")
+        courses = scrapeCourseRequirements(school, major)
+        print(f"✅ Found {len(courses)} courses")
+        
+        # Save to resume data if resume_id is provided
+        if resume_id and resume_id != 'temp-id':
+            resume_data = load_resume_data(resume_id)
+            if resume_data:
+                resume_data['course_work'] = courses
+                resume_data['updated_at'] = datetime.now().isoformat()
+                save_resume_data(resume_id, resume_data)
+                print(f"💾 Saved courses to resume {resume_id}")
+        
+        return {"courses": courses}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Error scraping courses: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error scraping courses: {str(e)}")
+
+@app.post("/regenerate-sections")
+async def regenerate_sections(resume_id: str):
+    """Regenerate resume sections with updated data"""
+    try:
+        resume_data = load_resume_data(resume_id)
+        if not resume_data:
+            raise HTTPException(status_code=404, detail="Resume not found")
+        
+        # For now, return existing sections
+        # Full implementation would regenerate using LLM
+        sections = resume_data.get('sections', {
+            "header": resume_data.get('header', ''),
+            "experience": resume_data.get('experience', ''),
+            "projects": resume_data.get('projects', ''),
+            "skills": resume_data.get('skills', ''),
+            "education": resume_data.get('education', '')
+        })
+        
+        return sections
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error regenerating sections: {str(e)}")
+
+@app.post("/update-skills")
+async def update_skills(resume_id: str, skills: dict):
+    """Update categorized skills"""
+    try:
+        resume_data = load_resume_data(resume_id)
+        if not resume_data:
+            raise HTTPException(status_code=404, detail="Resume not found")
+        
+        resume_data['skills_categorized'] = skills
+        resume_data['updated_at'] = datetime.now().isoformat()
+        save_resume_data(resume_id, resume_data)
+        
+        return {"success": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating skills: {str(e)}")
+
+@app.post("/validate-skills")
+async def validate_skills(resume_id: str, skills: list):
+    """Validate that skills appear in resume body"""
+    try:
+        resume_data = load_resume_data(resume_id)
+        if not resume_data:
+            raise HTTPException(status_code=404, detail="Resume not found")
+        
+        # Combine all resume text
+        resume_text = ' '.join([
+            str(resume_data.get('experience', '')),
+            str(resume_data.get('projects', '')),
+            str(resume_data.get('education', ''))
+        ]).lower()
+        
+        # Check which skills don't appear in resume
+        unmapped = [s for s in skills if s.lower() not in resume_text]
+        
+        return {"unmapped_skills": unmapped}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error validating skills: {str(e)}")
+
+@app.post("/export-resume")
+async def export_resume(resume_id: str, template: str, format: str):
+    """Export resume in specified format"""
+    try:
+        resume_data = load_resume_data(resume_id)
+        if not resume_data:
+            raise HTTPException(status_code=404, detail="Resume not found")
+        
+        # For now, return a placeholder message
+        # Full implementation would use Puppeteer for PDF, Jinja2 for LaTeX
+        return {
+            "success": False,
+            "message": "Export functionality not yet implemented. Please use the existing resume editor for now."
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error exporting resume: {str(e)}")
 
 @app.get("/")
 async def root():

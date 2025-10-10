@@ -21,12 +21,20 @@ trap cleanup SIGINT SIGTERM
 # Start backend server
 echo "Starting FastAPI backend on http://localhost:8000"
 cd backend
-# Try poetry first, fallback to python if poetry not available
+# Try poetry first, fallback to virtual environment if poetry not available
 if command -v poetry &> /dev/null; then
-    poetry run uvicorn main:app --reload --port 8000 &
+	# Ensure dependencies are installed for poetry projects
+	poetry install --no-root >/dev/null 2>&1 || true
+	poetry run uvicorn main:app --reload --port 8000 &
 else
-    echo "Poetry not found, using python directly..."
-    python main.py &
+	echo "Poetry not found, using virtual environment..."
+	if [ -d "venv" ]; then
+		source venv/bin/activate
+		uvicorn main:app --reload --port 8000 &
+	else
+		echo "Virtual environment not found. Please run 'python3 -m venv venv' and install dependencies first."
+		exit 1
+	fi
 fi
 BACKEND_PID=$!
 cd ..
@@ -37,12 +45,26 @@ sleep 2
 # Start frontend server
 echo "Starting Next.js frontend on http://localhost:3000"
 cd frontend
+
+# Install dependencies if missing
+if [ ! -d node_modules ]; then
+	echo "Installing frontend dependencies..."
+	if command -v pnpm &> /dev/null; then
+		pnpm install
+	elif command -v npm &> /dev/null; then
+		npm install
+	else
+		echo "No package manager found (pnpm or npm). Please install one to continue."
+		exit 1
+	fi
+fi
+
 # Try pnpm first, fallback to npm if pnpm not available
 if command -v pnpm &> /dev/null; then
-    pnpm run dev &
+	pnpm run dev &
 else
-    echo "pnpm not found, using npm..."
-    npm run dev &
+	echo "pnpm not found, using npm..."
+	npm run dev &
 fi
 FRONTEND_PID=$!
 cd ..

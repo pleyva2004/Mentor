@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Front End Draft - Mentor App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4F46E5;
+            --primary-light: #EEF2FF;
+            --secondary-color: #10B981;
+            --text-primary: #1F2937;
+            --text-secondary: #6B7280;
+            --text-light: #9CA3AF;
+            --bg-color: #F9FAFB;
+            --card-bg: #FFFFFF;
+            --border-color: #E5E7EB;
+            --disabled-color: #D1D5DB;
+            --error-color: #EF4444;
+            --success-color: #22C55E;
+            --warning-color: #F59E0B;
+            --font-family: 'Inter', sans-serif;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --border-radius: 0.75rem;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 1024px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .app-header {
+            text-align: center;
+        }
+
+        .app-header h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .app-header p {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        /* Stepper */
+        .stepper {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            width: 100%;
+            list-style: none;
+            padding: 0;
+            position: relative;
+        }
+
+        .stepper::before {
+            content: '';
+            position: absolute;
+            top: 1.25rem;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: var(--border-color);
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+
+        .stepper-progress {
+            position: absolute;
+            top: 1.25rem;
+            left: 0;
+            height: 2px;
+            background-color: var(--primary-color);
+            transform: translateY(-50%);
+            z-index: 2;
+            width: 0%;
+            transition: width 0.4s ease-in-out;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            z-index: 3;
+            background-color: var(--bg-color);
+            padding: 0 0.5rem;
+            width: 12.5%;
+        }
+        
+        .step-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            border: 2px solid var(--border-color);
+            background-color: var(--card-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .step-icon svg {
+            width: 1.25rem;
+            height: 1.25rem;
+            color: var(--text-light);
+            transition: color 0.3s ease;
+        }
+        
+        .step-label {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .step.active .step-icon {
+            border-color: var(--primary-color);
+            background-color: var(--primary-color);
+        }
+        .step.active .step-icon svg {
+            color: white;
+        }
+        .step.active .step-label {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .step.completed .step-icon {
+            border-color: var(--primary-color);
+            background-color: var(--primary-light);
+        }
+        .step.completed .step-icon svg {
+            color: var(--primary-color);
+        }
+
+        /* Phase Container */
+        .phase-container {
+            position: relative;
+            min-height: 550px;
+            overflow: hidden;
+        }
+
+        .phase-card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(20px);
+            transition: opacity 0.4s ease, transform 0.4s ease, visibility 0.4s;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .phase-card.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }
+
+        .phase-header {
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .phase-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .phase-header p {
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .phase-content {
+            flex-grow: 1;
+        }
+        
+        /* Form elements */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .form-input, .form-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: white;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        .form-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+        
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+        .form-input.invalid, .form-input:invalid {
+            border-color: var(--error-color);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .input-group .form-group {
+            flex: 1;
+        }
+
+        /* Navigation */
+        .phase-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #4338CA;
+        }
+        .btn-primary:disabled {
+            background-color: var(--disabled-color);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+        }
+        .btn-secondary:disabled {
+            background-color: transparent;
+            color: var(--text-light);
+            cursor: not-allowed;
+        }
+        .btn-danger {
+            background-color: transparent;
+            color: var(--error-color);
+            font-size: 0.875rem;
+            padding: 0.5rem 1rem;
+        }
+        .btn-danger:hover {
+            background-color: #FEF2F2;
+        }
+
+
+        /* Phase 1: Upload */
+        .drop-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background-color 0.2s;
+            background-color: var(--bg-color);
+        }
+        .drop-zone.dragover {
+            border-color: var(--primary-color);
+            background-color: var(--primary-light);
+        }
+        .drop-zone-icon {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        .drop-zone p {
+            color: var(--text-secondary);
+        }
+        .drop-zone span {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        #file-input { display: none; }
+        
+        .upload-status {
+            margin-top: 1.5rem;
+            display: none;
+        }
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background-color: var(--bg-color);
+            border-radius: 0.5rem;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        .progress-bar-fill {
+            width: 0%;
+            height: 100%;
+            background-color: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+        .status-text {
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* Phase 3: Course Selection */
+        .course-selection-tools {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .search-courses {
+            flex-grow: 1;
+            position: relative;
+        }
+        .search-courses input {
+            padding-left: 2.5rem;
+        }
+        .search-courses svg {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+        }
+        .course-actions button {
+            font-size: 0.875rem;
+            padding: 0.5rem 1rem;
+        }
+
+        .course-list {
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+        }
+
+        .course-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+        .course-item:hover {
+            background-color: var(--bg-color);
+        }
+        .course-item input[type="checkbox"] {
+            width: 1.25rem;
+            height: 1.25rem;
+            margin-right: 1rem;
+            accent-color: var(--primary-color);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .course-info {
+            flex-grow: 1;
+        }
+        .course-code {
+            font-weight: 600;
+        }
+        .course-name {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        .significant-marker {
+            margin-left: auto;
+            color: var(--text-light);
+            transition: color 0.2s;
+            padding: 0.25rem;
+        }
+        .significant-marker.active {
+            color: var(--warning-color);
+        }
+        .significant-marker svg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+        
+        .alternative-options {
+            margin-top: 1.5rem;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+        .alternative-options button {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        /* Phase 4: Project Association */
+        .project-association-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+        .project-card {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .project-card h3 {
+            font-size: 1.125rem;
+            margin-bottom: 0.5rem;
+        }
+        .project-card textarea {
+            width: 100%;
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        /* Phase 5: Work Experience */
+        .work-experience-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 0.25rem;
+        }
+        .work-experience-item {
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            background-color: var(--bg-color);
+        }
+        .work-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .work-item-header h3 {
+            font-size: 1.125rem;
+        }
+        .leadership-prompt {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: var(--primary-light);
+            border-radius: 0.5rem;
+            border: 1px solid #C7D2FE;
+        }
+
+        /* Phase 6: Resume Editor */
+        .editor-layout {
+            display: flex;
+            gap: 1.5rem;
+            height: 100%;
+        }
+        .resume-preview-panel {
+            flex: 2;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            background-color: #F3F4F6;
+            overflow-y: auto;
+        }
+        .resume-section {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-color);
+            background-color: white;
+            cursor: grab;
+            border-radius: 0.375rem;
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+        .resume-section.dragging {
+            opacity: 0.5;
+            box-shadow: var(--shadow-lg);
+            transform: scale(1.02);
+        }
+        .resume-section [contenteditable]:focus {
+            outline: 2px solid var(--primary-color);
+            background-color: var(--primary-light);
+            border-radius: 0.25rem;
+        }
+        .resume-section h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .resume-section p, .resume-section ul {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+         .resume-section ul { list-style-position: inside; padding-left: 0.5rem; }
+
+        .ai-helper-panel {
+            flex: 1;
+            background-color: var(--primary-light);
+            border: 1px solid #C7D2FE;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .ai-helper-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .ai-helper-header svg { color: var(--primary-color); }
+        .ai-helper-header h4 { font-size: 1.125rem; color: var(--primary-color); }
+        .ai-suggestion {
+            background-color: white;
+            border-radius: 0.375rem;
+            padding: 0.75rem;
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .ai-suggestion:hover {
+            background-color: #f0f0f0;
+        }
+        .autosave-indicator {
+            margin-top: auto;
+            text-align: center;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* Phase 7: Skills Review */
+        .skills-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .skill-category {
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+        .skill-category h4 {
+            margin-bottom: 1rem;
+        }
+        .skills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+        .skill-tag {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .skill-tag button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            line-height: 1;
+            padding: 0;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .skill-tag button:hover { opacity: 1; }
+        .add-skill-form {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .add-skill-form input {
+            flex-grow: 1;
+        }
+        .add-skill-form button {
+            padding: 0.5rem 1rem;
+        }
+
+        /* Phase 8: Export & Review */
+        .export-layout {
+            display: flex;
+            gap: 1.5rem;
+        }
+        .template-selector {
+            flex: 1;
+        }
+        .template-selector h4 { margin-bottom: 1rem; }
+        .template-preview {
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .template-preview:hover {
+            box-shadow: var(--shadow-md);
+        }
+        .template-preview.selected { 
+            border-color: var(--primary-color); 
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+        .template-preview img { width: 100%; display: block; border-radius: 0.25rem; }
+
+        .final-resume-preview {
+            flex: 2;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            background-color: white;
+            overflow-y: auto;
+            max-height: 450px;
+        }
+        .final-resume-preview.template-classic { font-family: 'Times New Roman', Times, serif; }
+        .final-resume-preview.template-classic h3 { font-size: 1.8rem; letter-spacing: 2px; text-transform: uppercase; }
+        .final-resume-preview.template-classic h4 { border-bottom: 1px solid black; }
+        
+        .final-resume-preview.template-modern { font-family: 'Inter', sans-serif; }
+        .final-resume-preview.template-modern h3 { font-size: 2rem; color: var(--primary-color); border: none; }
+        .final-resume-preview.template-modern h4 { color: var(--primary-color); border-bottom: 2px solid var(--primary-light); }
+        
+        .final-resume-preview h3 { font-size: 1.5rem; text-align: center; border-bottom: 2px solid black; padding-bottom: 0.5rem; margin-bottom: 1rem;}
+        .final-resume-preview h4 { font-size: 1.1rem; margin-top: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.25rem; margin-bottom: 0.5rem;}
+        .final-resume-preview p, .final-resume-preview ul { font-size: 0.9rem; line-height: 1.4; }
+        .final-resume-preview ul { list-style-position: inside; padding-left: 0; list-style-type: none;}
+        .final-resume-preview li::before { content: '• '; color: var(--text-secondary); }
+
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body { padding: 1rem 0.5rem; }
+            .step-label { display: none; }
+            .input-group { flex-direction: column; gap: 0; }
+            .editor-layout, .export-layout { flex-direction: column; }
+            .course-selection-tools { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header class="app-header">
+            <h1>Mentor Resume Helper</h1>
+            <p>Date: <span id="current-date">October 8, 2025</span> &mdash; Front End Draft</p>
+        </header>
+
+        <nav class="stepper">
+            <div class="stepper-progress"></div>
+            <li class="step active" data-step="1">
+                <div class="step-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l-3 3m3-3l3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" /></svg></div>
+                <span class="step-label">Upload</span>
+            </li>
+            <li class="step" data-step="2">
+                <div class="step-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0l-.07.002z" /></svg></div>
+                <span class="step-label">Education</span>
+            </li>
+            <li class="step" data-step="3">
+                <div class="step-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg></div>
+                <span class="step-label">Courses</span>
+            </li>
+            <li class="step" data-step="4">
+                <div class="step-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25A2.25 2.25 0 015.25 3h4.5M12 3v5.25m-2.25-5.25H15M15 3v5.25" /></svg></div>
+                <span class="step-label">Projects</span>
+            </li>
+            <li class="step" data-step="5">
+                <div class="step-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.05a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V8.25a2.25 2.25 0 012.25-2.25h15.5a2.25 2.25 0 012.25 2.25v.05M15.75 12.75l-4.5-4.5m4.5 4.5l-4.5 4.5M11.25 6.75h9" /></svg></div>
+                <span class="step-label">Work</span>
+            </li>
+            <li class="step" data-step="6">
+                <div class="step-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg></div>
+                <span class="step-label">Edit</span>
+            </li>
+            <li class="step" data-step="7">
+                <div class="step-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-1.007 1.11-1.226.554-.225 1.151-.242 1.709-.045.562.199 1.011.641 1.229 1.206.22.569.16 1.205-.148 1.737l-4.5 7.5c-.245.413-.426.85-.56 1.311l-.42 1.603a.75.75 0 01-.925.714l-2.11-1.055a.75.75 0 01-.422-1.019l4.5-7.5a1.125 1.125 0 00-1.125-1.5H5.625c-.621 0-1.125-.504-1.125-1.125v-1.5c0-.621.504-1.125 1.125-1.125h3.969z" /></svg></div>
+                <span class="step-label">Skills</span>
+            </li>
+            <li class="step" data-step="8">
+                <div class="step-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25H7.5a2.25 2.25 0 00-2.25 2.25v9a2.25 2.25 0 002.25 2.25h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H15m0-3l-3-3m0 0l-3 3m3-3v12" /></svg></div>
+                <span class="step-label">Export</span>
+            </li>
+        </nav>
+
+        <main class="phase-container">
+            <!-- Phase 1: Resume Upload -->
+            <section id="phase-1" class="phase-card">
+                <div class="phase-header">
+                    <h2>Upload Your Current Resume</h2>
+                    <p>Let's get started by parsing your existing resume. Don't have one? No problem, you can skip this step.</p>
+                </div>
+                <div class="phase-content">
+                    <input type="file" id="file-input" accept=".pdf,.docx,.txt" aria-hidden="true">
+                    <div id="drop-zone" class="drop-zone" role="button" tabindex="0" aria-label="Upload resume file">
+                        <div class="drop-zone-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l-3 3m3-3l3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" /></svg>
+                        </div>
+                        <p><span>Click to upload</span> or drag and drop</p>
+                        <p style="font-size: 0.875rem;">PDF, DOCX, or TXT (max. 5MB)</p>
+                    </div>
+                    <div id="upload-status" class="upload-status" aria-live="polite">
+                        <div class="file-info">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+                            <span id="file-name"></span>
+                        </div>
+                        <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                            <div id="progress-bar-fill" class="progress-bar-fill"></div>
+                        </div>
+                        <p id="status-text" class="status-text">Uploading...</p>
+                    </div>
+                </div>
+                <div class="phase-nav">
+                    <button class="btn btn-secondary" id="back-btn-1" disabled>Back</button>
+                    <button class="btn btn-primary" id="next-btn-1">Next</button>
+                </div>
+            </section>
+
+            <!-- Phase 2: Education -->
+            <section id="phase-2" class="phase-card">
+                <div class="phase-header">
+                    <h2>Confirm Your Education</h2>
+                    <p>Tell us about your academic background. We'll use this to find relevant courses and projects.</p>
+                </div>
+                <div class="phase-content">
+                    <form id="education-form">
+                        <div class="form-group">
+                            <label for="school-name">School / University</label>
+                            <input type="text" id="school-name" class="form-input" list="schools" placeholder="e.g., Massachusetts Institute of Technology" required>
+                            <datalist id="schools">
+                                <option value="Massachusetts Institute of Technology">
+                                <option value="Stanford University">
+                                <option value="Carnegie Mellon University">
+                                <option value="University of California, Berkeley">
+                            </datalist>
+                        </div>
+                        <div class="form-group">
+                            <label for="major">Major / Field of Study</label>
+                            <input type="text" id="major" class="form-input" placeholder="e.g., Computer Science and Engineering" required>
+                        </div>
+                        <div class="input-group">
+                             <div class="form-group">
+                                <label for="degree-type">Degree Type</label>
+                                <select id="degree-type" class="form-select" required>
+                                    <option value="" disabled selected>Select degree type</option>
+                                    <option value="BSc">Bachelor of Science (BSc)</option>
+                                    <option value="BA">Bachelor of Arts (BA)</option>
+                                    <option value="MSc">Master of Science (MSc)</option>
+                                    <option value="PhD">Doctor of Philosophy (PhD)</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="grad-year">Expected Graduation</label>
+                                <input type="month" id="grad-year" class="form-input" required>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="phase-nav">
+                    <button class="btn btn-secondary" id="back-btn-2">Back</button>
+                    <button class="btn btn-primary" id="next-btn-2" disabled>Next</button>
+                </div>
+            </section>
+
+            <!-- Phase 3: Course Selection -->
+            <section id="phase-3" class="phase-card">
+                <div class="phase-header">
+                    <h2>Select Relevant Coursework</h2>
+                    <p>Choose courses where you completed significant projects. Star (&#9733;) the most impactful ones.</p>
+                </div>
+                <div class="phase-content">
+                    <div class="course-selection-tools">
+                        <div class="search-courses">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+                            <input type="search" id="course-search" class="form-input" placeholder="Search by code or name (e.g., '6.824' or 'Distributed')">
+                        </div>
+                        <div class="course-actions">
+                            <button id="select-all-courses" class="btn btn-secondary">Select All</button>
+                            <button id="clear-all-courses" class="btn btn-secondary">Clear All</button>
+                        </div>
+                    </div>
+                    <div id="course-list" class="course-list">
+                        <!-- Course items will be injected by JS -->
+                    </div>
+                    <div class="alternative-options">
+                        Can't find your course? <button id="manual-course-btn">Enter Manually</button> or <button id="transcript-upload-btn">Upload Transcript</button>.
+                    </div>
+                </div>
+                <div class="phase-nav">
+                    <button class="btn btn-secondary" id="back-btn-3">Back</button>
+                    <button class="btn btn-primary" id="next-btn-3" disabled>Next</button>
+                </div>
+            </section>
+
+            <!-- Phase 4: Project Association -->
+            <section id="phase-4" class="phase-card">
+                <div class="phase-header">
+                    <h2>Describe Your Projects</h2>
+                    <p>For each selected course, describe the key project. This is required to generate resume bullet points.</p>
+                </div>
+                <div class="phase-content">
+                    <div id="project-association-list" class="project-association-list">
+                        <!-- Project cards will be injected by JS -->
+                    </div>
+                </div>
+                <div class="phase-nav">
+                    <button class="btn btn-secondary" id="back-btn-4">Back</button>
+                    <button class="btn btn-primary" id="next-btn-4" disabled>Next</button>
+                </div>
+            </section>
+
+            <!-- Phase 5: Work Experience -->
+            <section id="phase-5" class="phase-card">
+                <div class="phase-header">
+                    <h2>Add Your Work Experience</h2>
+                    <p>Detail your past internships, co-ops, or full-time roles. Click "Add Experience" for multiple entries.</p>
+                </div>
+                <div class="phase-content">
+                    <div id="work-experience-list" class="work-experience-list">
+                        <!-- Work experience items will be injected by JS -->
+                    </div>
+                    <button id="add-experience-btn" class="btn btn-secondary" style="margin-top: 1rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                        Add Experience
+                    </button>
+                </div>
+                <div class="phase-nav">
+                    <button class="btn btn-secondary" id="back-btn-5">Back</button>
+                    <button class="btn btn-primary" id="next-btn-5" disabled>Next</button>
+                </div>
+            </section>
+
+            <!-- Phase 6: Resume Editing -->
+            <section id="phase-6" class="phase-card">
+                <div class="phase-header">
+                    <h2>Edit & Refine Your Resume</h2>
+                    <p>Drag sections to reorder. Click text to edit. Use the AI Helper for suggestions.</p>
+                </div>
+                <div class="phase-content editor-layout">
+                    <div class="resume-preview-panel" id="resume-preview-panel">
+                        <div class="resume-section" draggable="true">
+                            <h4 contenteditable="true">Education</h4>
+                            <p contenteditable="true"><strong>Massachusetts Institute of Technology</strong>, Cambridge, MA</p>
+                            <p contenteditable="true"><em>Bachelor of Science in Computer Science and Engineering</em>, Expected May 2026</p>
+                        </div>
+                        <div class="resume-section" draggable="true">
+                            <h4 contenteditable="true">Work Experience</h4>
+                            <p contenteditable="true"><strong>Software Engineering Intern</strong>, Google, Mountain View, CA</p>
+                            <p contenteditable="true"><em>May 2025 - August 2025</em></p>
+                            <ul contenteditable="true"><li>Developed a new feature for Google Photos, improving user engagement by 15%.</li></ul>
+                        </div>
+                        <div class="resume-section" draggable="true">
+                            <h4 contenteditable="true">Projects</h4>
+                            <p contenteditable="true"><strong>Distributed Key-Value Store (from 6.824)</strong></p>
+                            <ul contenteditable="true">
+                                <li>Implemented a fault-tolerant data store using the Raft consensus algorithm.</li>
+                            </ul>
+                        </div>
+                         <div class="resume-section" draggable="true">
+                            <h4 contenteditable="true">Relevant Coursework</h4>
+                            <p contenteditable="true">Data Structures & Algorithms, Distributed Systems, Machine Learning, Web Development</p>
+                        </div>
+                    </div>
+                    <div class="ai-helper-panel">
+                        <div class="ai-helper-header">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12,2A10,10,0,0,0,2,12A10,10,0,0,0,12,22A10,10,0,0,0,22,12A10,10,0,0,0,12,2ZM15.71,15.71A1,1,0,0,1,14.29,17.12L12,14.83L9.71,17.12A1,1,0,0,1,8.29,15.71L10.59,13.41L8.29,11.12A1,1,0,0,1,9.71,9.71L12,12L14.29,9.71A1,1,0,0,1,15.71,11.12L13.41,13.41Z" /></svg>
+                            <h4>AI Helper</h4>
+                        </div>
+                        <p style="font-size:0.875rem; margin-bottom:1rem;">Suggestions for your 'Projects' section:</p>
+                        <div class="ai-suggestion">"Architected and developed a fault-tolerant, sharded key-value database..."</div>
+                        <div class="ai-suggestion">"Achieved 99.9% uptime and linear scalability by implementing the Raft consensus protocol in Go."</div>
+                        <div class="autosave-indicator" aria-live="polite">
+                            <svg xmlns="http://www.w3.org/2000/svg" style="display:inline; vertical-align: middle;" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            Autosaved just now.
+                        </div>
+                    </div>
+                </div>
+                <div class="phase-nav">
+                    <button class="btn btn-secondary" id="back-btn-6">Back</button>
+                    <button class="btn btn-primary" id="next-btn-6">Next</button>
+                </div>
+            </section>
+            
+            <!-- Phase 7: Skills Review -->
+            <section id="phase-7" class="phase-card">
+                <div class="phase-header">
+                    <h2>Review Your Skills</h2>
+                    <p>We've extracted these skills from your resume and coursework. Add or remove them as needed.</p>
+                </div>
+                <div class="phase-content skills-container">
+                    <div class="skill-category">
+                        <h4>Programming Languages</h4>
+                        <div class="skills-list" id="skills-lang">
+                            <span class="skill-tag">Python <button aria-label="Remove Python">&times;</button></span>
+                            <span class="skill-tag">JavaScript <button aria-label="Remove JavaScript">&times;</button></span>
+                            <span class="skill-tag">Go <button aria-label="Remove Go">&times;</button></span>
+                            <span class="skill-tag">SQL <button aria-label="Remove SQL">&times;</button></span>
+                        </div>
+                        <form class="add-skill-form" data-category="lang">
+                            <input type="text" class="form-input" placeholder="Add a language...">
+                            <button type="submit" class="btn btn-primary">Add</button>
+                        </form>
+                    </div>
+                    <div class="skill-category">
+                        <h4>Frameworks & Tools</h4>
+                        <div class="skills-list" id="skills-tools">
+                            <span class="skill-tag">React <button aria-label="Remove React">&times;</button></span>
+                            <span class="skill-tag">Node.js <button aria-label="Remove Node.js">&times;</button></span>
+                            <span class="skill-tag">Docker <button aria-label="Remove Docker">&times;</button></span>
+                            <span class="skill-tag">Git <button aria-label="Remove Git">&times;</button></span>
+                        </div>
+                         <form class="add-skill-form" data-category="tools">
+                            <input type="text" class="form-input" placeholder="Add a tool or framework...">
+                            <button type="submit" class="btn btn-primary">Add</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="phase-nav">
+                    <button class="btn btn-secondary" id="back-btn-7">Back</button>
+                    <button class="btn btn-primary" id="next-btn-7">Next</button>
+                </div>
+            </section>
+
+            <!-- Phase 8: Export & Review -->
+            <section id="phase-8" class="phase-card">
+                <div class="phase-header">
+                    <h2>Export & Final Review</h2>
+                    <p>Choose a template and download your new, polished resume.</p>
+                </div>
+                <div class="phase-content export-layout">
+                    <div class="template-selector">
+                        <h4>Select a Template</h4>
+                        <div class="template-preview selected" data-template="modern" tabindex="0" role="button">
+                            <img src="https://i.imgur.com/uN2n9eR.png" alt="Modern resume template preview">
+                        </div>
+                        <div class="template-preview" data-template="classic" tabindex="0" role="button">
+                            <img src="https://i.imgur.com/8YvL1b2.png" alt="Classic resume template preview">
+                        </div>
+                        <div class="export-actions" style="margin-top: 2rem;">
+                            <button class="btn btn-primary" style="width:100%; margin-bottom: 0.5rem;" id="export-pdf">Export as PDF</button>
+                            <button class="btn btn-secondary" style="width:100%; margin-bottom: 0.5rem;" id="export-docx">Export as DOCX</button>
+                        </div>
+                    </div>
+                    <div id="final-resume-preview" class="final-resume-preview template-modern">
+                        <h3>John Doe</h3>
+                        <p style="text-align: center; margin-bottom: 1rem;">(123) 456-7890 | john.doe@mit.edu | linkedin.com/in/johndoe</p>
+                        <h4>Education</h4>
+                        <p><strong>Massachusetts Institute of Technology</strong>, Cambridge, MA<br><em>Bachelor of Science in Computer Science and Engineering</em>, Expected May 2026</p>
+                        <h4>Work Experience</h4>
+                        <p><strong>Software Engineering Intern</strong>, Google, Mountain View, CA<br><em>May 2025 - August 2025</em></p>
+                        <ul><li>Developed a new feature for Google Photos, improving user engagement by 15%.</li></ul>
+                        <h4>Projects</h4>
+                        <p><strong>Distributed Key-Value Store</strong><br><em>Implemented a fault-tolerant, sharded data store using the Raft consensus algorithm in Go, achieving high availability and linear scalability for read/write operations.</em></p>
+                        <h4>Skills</h4>
+                        <p><strong>Languages:</strong> Python, JavaScript, Go, SQL<br><strong>Tools:</strong> React, Node.js, Docker, Git</p>
+                    </div>
+                </div>
+                <div class="phase-nav">
+                    <button class="btn btn-secondary" id="back-btn-8">Back</button>
+                    <button class="btn btn-primary" id="next-btn-8">Finish</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- STATE ---
+            let currentPhase = 1;
+            const totalPhases = 8;
+            const selectedCourses = new Map();
+            const courseCatalog = [
+                { code: '6.006', name: 'Introduction to Algorithms' }, { code: '6.031', name: 'Software Construction' }, { code: '6.033', name: 'Computer Systems Engineering' }, { code: '6.046', name: 'Design and Analysis of Algorithms' }, { code: '6.824', name: 'Distributed Computer Systems Engineering' }, { code: '6.828', name: 'Operating System Engineering' }, { code: '15.390', name: 'New Enterprises' }, { code: '15.501', name: 'Corporate Financial Accounting' }, { code: '21W.734', name: 'Writing and Rhetoric' }, { code: 'CMS.611', name: 'Creating Video Games' }
+            ];
+            let workExperienceCount = 0;
+
+            // --- DOM ELEMENTS ---
+            const phaseCards = document.querySelectorAll('.phase-card');
+            const steps = document.querySelectorAll('.step');
+            const stepperProgress = document.querySelector('.stepper-progress');
+            const nextButtons = Array.from({ length: totalPhases }, (_, i) => document.getElementById(`next-btn-${i + 1}`));
+            const backButtons = Array.from({ length: totalPhases }, (_, i) => document.getElementById(`back-btn-${i + 1}`));
+
+            // --- NAVIGATION LOGIC ---
+            const goToPhase = (phaseNumber) => {
+                if (phaseNumber < 1 || phaseNumber > totalPhases) return;
+                
+                // Complete current phase before moving
+                const currentStepEl = document.querySelector(`.step[data-step="${currentPhase}"]`);
+                if(phaseNumber > currentPhase) {
+                    currentStepEl.classList.add('completed');
+                }
+
+                currentPhase = phaseNumber;
+                
+                phaseCards.forEach(card => card.classList.remove('active'));
+                document.getElementById(`phase-${currentPhase}`).classList.add('active');
+                
+                steps.forEach(step => {
+                    const stepNum = parseInt(step.dataset.step, 10);
+                    step.classList.remove('active', 'completed');
+                    if (stepNum < currentPhase) step.classList.add('completed');
+                    else if (stepNum === currentPhase) step.classList.add('active');
+                });
+
+                const progressPercentage = ((currentPhase - 1) / (totalPhases - 1)) * 100;
+                stepperProgress.style.width = `${progressPercentage}%`;
+
+                // Phase-specific logic on load
+                if (currentPhase === 4) generateProjectAssociationUI();
+                if (currentPhase === 5 && workExperienceCount === 0) addWorkExperienceItem();
+                if (currentPhase === 8) updateFinalPreview();
+                
+                validateCurrentPhase();
+            };
+
+            nextButtons.forEach((btn, index) => btn.addEventListener('click', () => goToPhase(index + 2)));
+            backButtons.forEach((btn, index) => {
+                if (index >= 0) btn.addEventListener('click', () => goToPhase(index + 1));
+            });
+
+            // --- VALIDATION LOGIC ---
+            const validationChecks = {
+                1: () => true, // Allow skipping
+                2: () => Array.from(document.querySelectorAll('#education-form [required]')).every(input => input.value.trim() !== ''),
+                3: () => selectedCourses.size > 0,
+                4: () => {
+                    const projectTextareas = document.querySelectorAll('#project-association-list textarea');
+                    if (projectTextareas.length === 0) {
+                        return true; // No courses selected, so nothing to describe. Valid to proceed.
+                    }
+                    // All generated textareas must have content.
+                    return Array.from(projectTextareas).every(textarea => textarea.value.trim() !== '');
+                },
+                5: () => {
+                    const workItems = document.querySelectorAll('.work-experience-item');
+                    if (workItems.length === 0) return true; // Can skip
+                    return Array.from(workItems).every(item => {
+                        const title = item.querySelector('input[id^="job-title"]');
+                        const company = item.querySelector('input[id^="company"]');
+                        let isValid = true;
+                        [title, company].forEach(input => {
+                            if (!input.value.trim()) {
+                                input.classList.add('invalid');
+                                isValid = false;
+                            } else {
+                                input.classList.remove('invalid');
+                            }
+                        });
+                        return isValid;
+                    });
+                },
+                6: () => true, 7: () => true, 8: () => true,
+            };
+
+            const validateCurrentPhase = () => {
+                const isPhaseValid = validationChecks[currentPhase] ? validationChecks[currentPhase]() : true;
+                if (nextButtons[currentPhase - 1]) {
+                    nextButtons[currentPhase - 1].disabled = !isPhaseValid;
+                }
+            };
+
+            // --- PHASE 1: UPLOAD ---
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('file-input');
+            const uploadStatus = document.getElementById('upload-status');
+            const progressBar = document.querySelector('.progress-bar');
+            
+            function handleFile(file) {
+                uploadStatus.style.display = 'block';
+                document.getElementById('file-name').textContent = file.name;
+                const progressBarFill = document.getElementById('progress-bar-fill');
+                const statusText = document.getElementById('status-text');
+                progressBarFill.style.width = '0%';
+                progressBar.setAttribute('aria-valuenow', 0);
+                statusText.style.color = 'var(--text-secondary)';
+                statusText.textContent = 'Uploading...';
+                
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 20;
+                    progressBarFill.style.width = `${progress}%`;
+                    progressBar.setAttribute('aria-valuenow', progress);
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        statusText.textContent = 'Parsing complete!';
+                        statusText.style.color = 'var(--success-color)';
+                        // Pre-fill next step as a demo
+                        document.getElementById('school-name').value = 'Massachusetts Institute of Technology';
+                        document.getElementById('major').value = 'Computer Science and Engineering';
+                        document.getElementById('degree-type').value = 'BSc';
+                        document.getElementById('grad-year').value = '2026-05';
+                        validateCurrentPhase();
+                    }
+                }, 300);
+            }
+            dropZone.addEventListener('click', () => fileInput.click());
+            dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+            dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]); });
+            fileInput.addEventListener('change', e => { if (e.target.files.length) handleFile(e.target.files[0]); });
+
+            // --- PHASE 2: EDUCATION ---
+            document.getElementById('education-form').addEventListener('input', validateCurrentPhase);
+            
+            // --- PHASE 3: COURSE SELECTION ---
+            const courseListEl = document.getElementById('course-list');
+            const renderCourseList = (filter = '') => {
+                courseListEl.innerHTML = '';
+                const filtered = courseCatalog.filter(c => c.name.toLowerCase().includes(filter.toLowerCase()) || c.code.toLowerCase().includes(filter.toLowerCase()));
+                if (filtered.length === 0) {
+                    courseListEl.innerHTML = `<p style="text-align:center; padding: 1rem; color: var(--text-secondary);">No courses found.</p>`;
+                    return;
+                }
+                filtered.forEach(course => {
+                    const courseData = selectedCourses.get(course.code);
+                    const isSelected = !!courseData;
+                    const isSignificant = isSelected && courseData.significant;
+                    const item = document.createElement('div');
+                    item.className = 'course-item';
+                    item.setAttribute('data-code', course.code);
+                    item.innerHTML = `
+                        <input type="checkbox" id="cb-${course.code}" data-code="${course.code}" ${isSelected ? 'checked' : ''} aria-labelledby="label-${course.code}">
+                        <div class="course-info" id="label-${course.code}">
+                            <div class="course-code">${course.code}</div>
+                            <div class="course-name">${course.name}</div>
+                        </div>
+                        <div class="significant-marker ${isSignificant ? 'active' : ''}" data-code="${course.code}" title="Mark as significant project course" role="button" tabindex="0" aria-pressed="${isSignificant}">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.868 2.884c.321-.772 1.415-.772 1.736 0l1.681 4.06c.064.155.195.275.353.32l4.428.644c.86.126 1.206 1.182.584 1.79l-3.205 3.124a.49.49 0 00-.142.434l.756 4.41c.146.855-.747 1.51-1.482 1.103l-3.953-2.078a.492.492 0 00-.456 0l-3.953 2.078c-.735.387-1.628-.248-1.482-1.103l.756-4.41a.49.49 0 00-.142-.434L2.43 9.702c-.622-.608-.276-1.664.584-1.79l4.428-.644a.49.49 0 00.353-.32l1.681-4.06z" clip-rule="evenodd" /></svg>
+                        </div>
+                    `;
+                    courseListEl.appendChild(item);
+                });
+            };
+            document.getElementById('course-search').addEventListener('input', e => renderCourseList(e.target.value));
+            courseListEl.addEventListener('click', e => {
+                const item = e.target.closest('.course-item');
+                if (!item) return;
+                const code = item.dataset.code;
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                const marker = e.target.closest('.significant-marker');
+                
+                if (marker) {
+                    if (!selectedCourses.has(code)) return;
+                    const courseData = selectedCourses.get(code);
+                    courseData.significant = !courseData.significant;
+                    marker.classList.toggle('active', courseData.significant);
+                    marker.setAttribute('aria-pressed', courseData.significant);
+                } else {
+                    const isNowChecked = e.target === checkbox ? checkbox.checked : !checkbox.checked;
+                    checkbox.checked = isNowChecked;
+                    if (isNowChecked) selectedCourses.set(code, { significant: false });
+                    else selectedCourses.delete(code);
+                    item.querySelector('.significant-marker').classList.remove('active');
+                }
+                validateCurrentPhase();
+            });
+            document.getElementById('select-all-courses').addEventListener('click', () => {
+                courseCatalog.forEach(c => selectedCourses.set(c.code, { name: c.name, significant: false, project: '' }));
+                renderCourseList(); validateCurrentPhase();
+            });
+            document.getElementById('clear-all-courses').addEventListener('click', () => {
+                selectedCourses.clear();
+                renderCourseList(); validateCurrentPhase();
+            });
+            document.getElementById('manual-course-btn').addEventListener('click', () => alert('Prototype: This would open a modal to manually enter course details.'));
+            document.getElementById('transcript-upload-btn').addEventListener('click', () => alert('Prototype: This would open a file upload dialog for your transcript.'));
+
+            // --- PHASE 4: PROJECT ASSOCIATION ---
+            const generateProjectAssociationUI = () => {
+                const listEl = document.getElementById('project-association-list');
+                listEl.innerHTML = '';
+                const courses = Array.from(selectedCourses.keys())
+                    .map(code => ({ code, ...courseCatalog.find(c => c.code === code), significant: selectedCourses.get(code).significant }))
+                    .sort((a, b) => b.significant - a.significant);
+
+                if (courses.length === 0) {
+                    listEl.innerHTML = `<p style="text-align:center; padding: 1rem; color: var(--text-secondary);">No courses selected. Go back to select some.</p>`;
+                    return;
+                }
+                courses.forEach(course => {
+                    const card = document.createElement('div');
+                    card.className = 'project-card';
+                    card.innerHTML = `
+                        <h3>${course.code}: ${course.name} ${course.significant ? '<span style="color:var(--warning-color)">&#9733;</span>' : ''}</h3>
+                        <div class="form-group">
+                            <label for="project-${course.code}">Describe your main project or learning (Required):</label>
+                            <textarea id="project-${course.code}" class="form-input" placeholder="e.g., Implemented a fault-tolerant key-value store..." required></textarea>
+                        </div>
+                    `;
+                    listEl.appendChild(card);
+                });
+            };
+            document.getElementById('project-association-list').addEventListener('input', validateCurrentPhase);
+            
+            // --- PHASE 5: WORK EXPERIENCE ---
+            const workListEl = document.getElementById('work-experience-list');
+            const addWorkExperienceItem = () => {
+                workExperienceCount++;
+                const item = document.createElement('div');
+                item.className = 'work-experience-item';
+                item.id = `work-item-${workExperienceCount}`;
+                item.innerHTML = `
+                    <div class="work-item-header">
+                        <h3>Experience #${workExperienceCount}</h3>
+                        <button class="btn btn-danger remove-work-btn" data-target="${item.id}">Remove</button>
+                    </div>
+                    <div class="input-group">
+                        <div class="form-group"><label for="job-title-${workExperienceCount}">Job Title *</label><input type="text" id="job-title-${workExperienceCount}" class="form-input" placeholder="e.g., Software Engineering Intern" required></div>
+                        <div class="form-group"><label for="company-${workExperienceCount}">Company *</label><input type="text" id="company-${workExperienceCount}" class="form-input" placeholder="e.g., Google" required></div>
+                    </div>
+                    <div class="input-group">
+                        <div class="form-group"><label for="start-date-${workExperienceCount}">Start Date</label><input type="month" id="start-date-${workExperienceCount}" class="form-input"></div>
+                        <div class="form-group"><label for="end-date-${workExperienceCount}">End Date</label><input type="month" id="end-date-${workExperienceCount}" class="form-input"></div>
+                    </div>
+                    <div class="form-group"><label for="location-${workExperienceCount}">Location</label><input type="text" id="location-${workExperienceCount}" class="form-input" placeholder="e.g., Mountain View, CA"></div>
+                    <div class="leadership-prompt">
+                        <label for="leadership-${workExperienceCount}" class="form-group">Describe a situation where you demonstrated leadership or took initiative (optional):</label>
+                        <textarea id="leadership-${workExperienceCount}" class="form-input" rows="2" placeholder="e.g., Mentored a junior intern, proposed a new testing strategy..."></textarea>
+                    </div>
+                `;
+                workListEl.appendChild(item);
+                item.querySelectorAll('input[required]').forEach(input => input.addEventListener('input', validateCurrentPhase));
+                validateCurrentPhase();
+            };
+            document.getElementById('add-experience-btn').addEventListener('click', addWorkExperienceItem);
+            workListEl.addEventListener('click', e => {
+                if(e.target.classList.contains('remove-work-btn')){
+                    document.getElementById(e.target.dataset.target)?.remove();
+                    validateCurrentPhase();
+                }
+            });
+
+            // --- PHASE 6: RESUME EDITING ---
+            const resumePanel = document.getElementById('resume-preview-panel');
+            let draggedItem = null;
+            resumePanel.addEventListener('dragstart', e => {
+                if (e.target.classList.contains('resume-section')) {
+                    draggedItem = e.target;
+                    setTimeout(() => e.target.classList.add('dragging'), 0);
+                }
+            });
+            resumePanel.addEventListener('dragend', e => {
+                if (draggedItem) {
+                    draggedItem.classList.remove('dragging');
+                    draggedItem = null;
+                }
+            });
+            resumePanel.addEventListener('dragover', e => {
+                e.preventDefault();
+                const afterElement = getDragAfterElement(resumePanel, e.clientY);
+                if (afterElement == null) {
+                    resumePanel.appendChild(draggedItem);
+                } else {
+                    resumePanel.insertBefore(draggedItem, afterElement);
+                }
+            });
+            function getDragAfterElement(container, y) {
+                const draggableElements = [...container.querySelectorAll('.resume-section:not(.dragging)')];
+                return draggableElements.reduce((closest, child) => {
+                    const box = child.getBoundingClientRect();
+                    const offset = y - box.top - box.height / 2;
+                    if (offset < 0 && offset > closest.offset) {
+                        return { offset: offset, element: child };
+                    } else {
+                        return closest;
+                    }
+                }, { offset: Number.NEGATIVE_INFINITY }).element;
+            }
+
+            // --- PHASE 7: SKILLS REVIEW ---
+            document.querySelector('.skills-container').addEventListener('click', e => {
+                if (e.target.tagName === 'BUTTON' && e.target.parentElement.classList.contains('skill-tag')) {
+                    e.target.parentElement.remove();
+                }
+            });
+            document.querySelectorAll('.add-skill-form').forEach(form => {
+                form.addEventListener('submit', e => {
+                    e.preventDefault();
+                    const input = form.querySelector('input');
+                    const skillName = input.value.trim();
+                    if (skillName) {
+                        const category = form.dataset.category;
+                        const list = document.getElementById(`skills-${category}`);
+                        const newTag = document.createElement('span');
+                        newTag.className = 'skill-tag';
+                        newTag.textContent = skillName + ' ';
+                        const removeBtn = document.createElement('button');
+                        removeBtn.innerHTML = '&times;';
+                        removeBtn.setAttribute('aria-label', `Remove ${skillName}`);
+                        newTag.appendChild(removeBtn);
+                        list.appendChild(newTag);
+                        input.value = '';
+                    }
+                });
+            });
+
+            // --- PHASE 8: EXPORT & REVIEW ---
+            const finalPreviewPane = document.getElementById('final-resume-preview');
+            const updateFinalPreview = () => {
+                // This is a simplified demo update. A real app would build this from all collected data.
+                const workItems = document.querySelectorAll('.work-experience-item');
+                let workHTML = '';
+                if(workItems.length > 0) {
+                    workHTML += '<h4>Work Experience</h4>';
+                    workItems.forEach(item => {
+                        const title = item.querySelector('input[id^="job-title"]').value || 'Job Title';
+                        const company = item.querySelector('input[id^="company"]').value || 'Company';
+                        workHTML += `<p><strong>${title}</strong>, ${company}</p>`;
+                    });
+                }
+
+                const skillsLang = Array.from(document.querySelectorAll('#skills-lang .skill-tag')).map(t => t.innerText.replace('×','').trim()).join(', ');
+                const skillsTools = Array.from(document.querySelectorAll('#skills-tools .skill-tag')).map(t => t.innerText.replace('×','').trim()).join(', ');
+
+                finalPreviewPane.innerHTML = `
+                    <h3>John Doe</h3>
+                    <p style="text-align: center; margin-bottom: 1rem;">(123) 456-7890 | john.doe@mit.edu | linkedin.com/in/johndoe</p>
+                    <h4>Education</h4>
+                    <p><strong>${document.getElementById('school-name').value}</strong><br><em>${document.getElementById('degree-type').value} in ${document.getElementById('major').value}</em></p>
+                    ${workHTML}
+                    <h4>Skills</h4>
+                    <p><strong>Languages:</strong> ${skillsLang}<br><strong>Tools:</strong> ${skillsTools}</p>
+                `;
+            };
+
+            document.querySelector('.template-selector').addEventListener('click', e => {
+                const preview = e.target.closest('.template-preview');
+                if (preview) {
+                    document.querySelectorAll('.template-preview').forEach(p => p.classList.remove('selected'));
+                    preview.classList.add('selected');
+                    finalPreviewPane.className = 'final-resume-preview'; // Reset classes
+                    finalPreviewPane.classList.add(`template-${preview.dataset.template}`);
+                }
+            });
+            document.getElementById('export-pdf').addEventListener('click', () => alert('Prototype: Your resume would be downloaded as a PDF.'));
+            document.getElementById('export-docx').addEventListener('click', () => alert('Prototype: Your resume would be downloaded as a DOCX file.'));
+            document.getElementById('next-btn-8').addEventListener('click', () => {
+                alert('Congratulations! You have completed the Mentor Resume Helper process.');
+                // Reset state for a new run (simplified)
+                selectedCourses.clear();
+                workExperienceCount = 0;
+                document.getElementById('work-experience-list').innerHTML = '';
+                document.getElementById('education-form').reset();
+                goToPhase(1);
+            });
+
+            // --- INITIALIZATION ---
+            renderCourseList();
+            goToPhase(1);
+        });
+    </script>
+</body>
+</html>

@@ -5,10 +5,61 @@
 **Mentór** is an AI-powered resume building and analysis platform designed to help candidates create professional resumes. The platform consists of:
 
 1. **Backend (FastAPI)**: Python-based API server that processes PDF resumes, extracts information using LLMs, and scrapes university course catalogs
-2. **Frontend (Next.js)**: Main application for uploading resumes and displaying course requirements
-3. **Resume-Helper (Next.js)**: Separate application for comprehensive resume building with AI assistance
+2. **Frontend (Next.js)**: Complete application featuring resume upload, course analysis, and interactive resume editing with AI assistance
 
 **Mission**: "Ex-FAANG engineer wants to give everyone a chance" - democratizing access to professional resume building.
+
+---
+
+## Implementation Status
+
+### Mentor Feature Requirements Progress: ~30%
+
+Reference: See `mentor-feature-doc.md` for complete feature requirements.
+
+| Feature Requirement | Phase | Status | Notes |
+|---------------------|-------|--------|-------|
+| **Phase 1: Onboarding & Data Collection (40%)** |
+| FR-1.1 Upload Interface | 1 | ✅ Complete | PDF only, DOCX missing |
+| FR-1.2 Data Extraction | 1 | ✅ Complete | 5 sections extracted |
+| FR-1.3 Missing Info Prompts | 1 | ❌ Not Implemented | No UI for manual correction |
+| FR-2.1 School/Major Confirmation | 1 | ❌ Not Implemented | Auto-extracted only |
+| FR-2.2 Academic Standing | 1 | ❌ Not Implemented | |
+| **Phase 2: Course Selection (50%)** |
+| FR-3.1 Course List Generation | 2 | ✅ Complete | AI-scraped catalogs |
+| FR-3.2 Course Selection UI | 2 | ⚠️ Partial | Checkboxes + Clear All only |
+| FR-3.3 Alternative Input | 2 | ❌ Not Implemented | No transcript upload |
+| FR-3.4 Course-Project Association | 2 | ❌ Not Implemented | |
+| FR-3.5 Project Details Collection | 2 | ❌ Not Implemented | |
+| **Phase 3: Interactive Resume Editing (60%)** |
+| FR-4.1 Section Block Display | 3 | ✅ Complete | 5 sections rendered |
+| FR-4.2 Drag-Drop Reordering | 3 | ✅ Complete | Full @dnd-kit integration |
+| FR-4.3 Edit Mode Activation | 3 | ✅ Complete | Slide animation working |
+| FR-4.4 Inline Editing | 3 | ⚠️ Partial | Limited to text fields, not HTML |
+| FR-4.5 Bullet Point Management | 3 | ❌ Not Implemented | No CRUD operations |
+| FR-4.6 Context-Aware Tips | 3 | ✅ Complete | AI helper panel active |
+| FR-4.7 AI Suggestions | 3 | ⚠️ Partial | Only "Rephrase" works |
+| FR-4.8 Interactive Suggestion Flow | 3 | ❌ Not Implemented | No multiple options |
+| FR-4.9 Manual Enhancement | 3 | ❌ Not Implemented | No verb bank |
+| **Phase 4: Experience Enhancement (0%)** |
+| FR-5.x All Features | 4 | ❌ Not Implemented | |
+| **Phase 5: Skills Synthesis (0%)** |
+| FR-6.1 Skills Extraction | 5 | ✅ Complete | From experience/projects |
+| FR-6.2 Skills Organization | 5 | ✅ Complete | Categorized output |
+| FR-6.3 Skills Validation | 5 | ❌ Not Implemented | Backend ready, not wired |
+| **Phase 6: Resume Export (0%)** |
+| FR-7.1 Preview Modes | 6 | ⚠️ Partial | Edit mode only |
+| FR-7.2 Export Options | 6 | ❌ Not Implemented | No LaTeX/PDF export |
+| **Phase 7: Career Planning (0%)** |
+| FR-8.x All Features | 7 | ❌ Not Implemented | |
+| **Phase 8: Project Recommendations (0%)** |
+| FR-9.x All Features | 8 | ❌ Not Implemented | |
+
+### Critical Gaps
+- **Phases 4-8**: Completely unimplemented (70% of Mentor spec)
+- **PDF Export**: Blocking production use
+- **Authentication**: No user accounts
+- **Skills Validation**: Backend exists but not connected to UI
 
 ---
 
@@ -17,8 +68,7 @@
 ```
 Mentór/
 ├── backend/              # FastAPI server (Python)
-├── frontend/             # Main Next.js application
-├── resume-helper/        # Resume builder Next.js application
+├── frontend/             # Complete Next.js application with resume editing
 ├── start.sh             # Startup script for both frontend and backend
 └── README.md
 ```
@@ -26,521 +76,107 @@ Mentór/
 ### System Architecture
 
 ```
-┌─────────────────┐          ┌──────────────────┐
-│   Frontend      │          │  Resume-Helper   │
-│   (Next.js)     │          │    (Next.js)     │
-│   Port: 3000    │          │    Port: TBD     │
-└────────┬────────┘          └────────┬─────────┘
-         │                            │
-         │    HTTP Requests           │
-         │                            │
-         └───────────┬────────────────┘
-                     │
-         ┌───────────▼────────────┐
-         │   Backend (FastAPI)    │
-         │   Port: 8000           │
-         │                        │
-         │  ┌──────────────────┐  │
-         │  │  LLM Providers   │  │
-         │  │  - OpenAI        │  │
-         │  │  - Anthropic     │  │
-         │  │  - Gemini        │  │
-         │  └──────────────────┘  │
-         │                        │
-         │  ┌──────────────────┐  │
-         │  │ Course Scraper   │  │
-         │  │ - SerpAPI        │  │
-         │  │ - BeautifulSoup  │  │
-         │  └──────────────────┘  │
-         │                        │
-         │  ┌──────────────────┐  │
-         │  │  Cache (JSON)    │  │
-         │  └──────────────────┘  │
-         └────────────────────────┘
+┌─────────────────────────────────────────┐
+│           Frontend (Next.js)            │
+│              Port: 3000                 │
+│                                         │
+│  ┌─────────────────────────────────┐   │
+│  │     Resume Upload & Analysis    │   │
+│  │     - PDF Upload                │   │
+│  │     - Course Requirements       │   │
+│  │     - Course Selection          │   │
+│  └─────────────────────────────────┘   │
+│                                         │
+│  ┌─────────────────────────────────┐   │
+│  │     Interactive Resume Editor   │   │
+│  │     - Drag & Drop Sections      │   │
+│  │     - Inline Text Editing       │   │
+│  │     - AI Suggestions Panel      │   │
+│  │     - Real-time Preview         │   │
+│  └─────────────────────────────────┘   │
+└─────────────┬───────────────────────────┘
+              │
+              │    HTTP Requests
+              │
+              ▼
+┌─────────────────────────────────────────┐
+│         Backend (FastAPI)               │
+│            Port: 8000                   │
+│                                         │
+│  ┌─────────────────────────────────┐   │
+│  │      LLM Providers              │   │
+│  │      - OpenAI                   │   │
+│  │      - Anthropic                │   │
+│  │      - Gemini                   │   │
+│  └─────────────────────────────────┘   │
+│                                         │
+│  ┌─────────────────────────────────┐   │
+│  │      Course Scraper             │   │
+│  │      - SerpAPI                  │   │
+│  │      - BeautifulSoup            │   │
+│  └─────────────────────────────────┘   │
+│                                         │
+│  ┌─────────────────────────────────┐   │
+│  │      Cache (JSON)               │   │
+│  └─────────────────────────────────┘   │
+└─────────────────────────────────────────┘
 ```
 
 ---
 
-## Backend (FastAPI) - `/backend`
+## Backend (FastAPI)
 
-### Tech Stack
-- **Framework**: FastAPI
-- **Python Version**: 3.9+
-- **Package Manager**: Poetry
-- **PDF Processing**: PyMuPDF (fitz)
-- **Web Scraping**: BeautifulSoup4, Requests
-- **Search API**: SerpAPI
-- **LLM Providers**: OpenAI, Anthropic (Claude), Google Gemini
-- **Server**: Uvicorn
+**Tech Stack**: Python 3.9+, FastAPI, Poetry, PyMuPDF, BeautifulSoup4, SerpAPI, OpenAI/Anthropic/Gemini
 
-### Directory Structure
+### Core Files
 
-```
-backend/
-├── main.py               # FastAPI app entry point, resume upload endpoint
-├── provider.py           # LLM provider abstraction layer
-├── course_scraper.py     # University course catalog scraper
-├── extract.py            # LLM response parsing utilities
-├── cache.py              # File-based caching system
-├── search.py             # Search utilities
-├── pyproject.toml        # Poetry dependencies
-└── cache/                # Cached course data (JSON files)
-    ├── mit_computer_science.json
-    ├── njit_computer_science.json
-    └── ...
-```
+- **`main.py`** (698 lines): FastAPI app with 9 API endpoints. Handles PDF upload, LLM processing pipeline (5 sections), resume persistence (JSON files), and quota-exceeded fallbacks.
 
-### Key Files and Their Responsibilities
+- **`provider.py`** (96 lines): LLM provider abstraction using Strategy pattern. Supports OpenAI GPT-4o (default), Anthropic Claude Sonnet 4, and Gemini 2.0 Flash. Switch providers via `get_llm_provider(provider="openai")`.
 
-#### 1. `main.py` (Lines: 276)
-**Purpose**: Core FastAPI application with resume processing endpoint
+- **`course_scraper.py`** (215 lines): AI-powered course catalog scraper. Uses SerpAPI for search, BeautifulSoup for HTML cleaning, and LLM for extraction. Implements cache-first strategy with 30-day expiry.
 
-**Key Features**:
-- CORS middleware configured for `http://localhost:3000`
-- Single endpoint: `POST /upload-resume`
-- PDF text extraction using PyMuPDF
-- Multi-stage LLM processing pipeline:
-  1. Extract college name, major, graduation year
-  2. Scrape course requirements
-  3. Generate HTML for:
-     - Header (contact info)
-     - Projects
-     - Skills (categorized)
-     - Experience
-     - Education
+- **`extract.py`** (36 lines): LLM response parsing utilities. Cleans markdown artifacts and extracts JSON/HTML from AI responses.
 
-**LLM Prompts**:
-- **Resume Metadata Extraction** (Lines 54-103): Extracts college, major, year
-- **Header Extraction** (Lines 112-128): Formats contact info as HTML
-- **Projects Extraction** (Lines 133-160): Formats projects with bullets
-- **Skills Extraction** (Lines 165-193): Categorizes skills (Languages, Frameworks, Databases, Cloud/DevOps, AI/ML)
-- **Experience Extraction** (Lines 197-225): Formats work experience with bullets
-- **Education Extraction** (Lines 230-257): Formats degree info with coursework
+- **`cache.py`** (56 lines): File-based JSON cache with automatic expiry (30 days) and corruption handling.
 
-**API Response Schema**:
-```json
-{
-  "filename": "string",
-  "text": "string",
-  "header": "HTML string",
-  "projects": "HTML string",
-  "skills": "HTML string",
-  "experience": "HTML string",
-  "education": "HTML string",
-  "course_work": [
-    {"course_number": "CS 101", "course_title": "Intro to CS"}
-  ]
-}
-```
+### LLM Processing Pipeline
 
-#### 2. `provider.py` (Lines: 90)
-**Purpose**: Abstract interface for multiple LLM providers
-
-**Architecture Pattern**: Strategy Pattern with Factory
-
-**Classes**:
-- `LLMProvider` (ABC): Abstract base class
-- `OpenAIProvider`: Uses GPT-4o model (default)
-- `AnthropicProvider`: Uses Claude Sonnet 4
-- `GeminiProvider`: Uses Gemini 2.0 Flash Exp
-- `get_llm_provider()`: Factory function
-
-**Current Provider**: OpenAI (main.py:11)
-
-**Environment Variables Required**:
-- `OPENAI_API_KEY`
-- `ANTHROPIC_API_KEY`
-- `GEMINI_API_KEY`
-
-#### 3. `course_scraper.py` (Lines: 215)
-**Purpose**: Scrape university course catalogs using AI
-
-**Key Functions**:
-
-1. `searchCourseCatalogs(school, major)` → List[str]
-   - Uses SerpAPI to find course catalog URLs
-   - Returns top 3 URLs
-
-2. `fetchPageContent(url)` → Optional[str]
-   - HTTP GET with retry logic
-   - Custom User-Agent headers
-
-3. `extractCourses(html_content, school, major)` → dict
-   - Uses BeautifulSoup to clean HTML
-   - LLM extracts course numbers and titles
-   - Returns structured JSON array
-
-4. `scrapeCourseRequirements(school, major)` → dict
-   - Main entry point
-   - Implements cache-first strategy
-   - Deduplicates courses by course number
-   - Caches results to JSON files
-
-**Cache Key Format**: `{school}_{major}` (lowercase, underscores)
-Example: `new_jersey_institute_of_technology_computer_science`
-
-#### 4. `extract.py` (Lines: 1233)
-**Purpose**: Parse and clean LLM responses
-
-**Key Functions**:
-- `parseLLMResponse()`: Extracts JSON from LLM output
-- `parseHTMLResponse()`: Cleans HTML from LLM output
-
-#### 5. `cache.py` (Lines: 1281)
-**Purpose**: File-based caching for course data
-
-**Functions**:
-- `get_cache(key)`: Load cached JSON
-- `set_cache(key, data)`: Save JSON to cache
-
-**Cache Location**: `backend/cache/{key}.json`
-
-### Backend Configuration
-
-**CORS Settings** (main.py:14-20):
-- Origin: `http://localhost:3000`
-- Credentials: Enabled
-- All methods and headers allowed
-
-**File Upload Limits** (main.py:48):
-- Max size: 10MB
-- Accepted format: PDF only
+1. Extract metadata (college, major, graduation year)
+2. Scrape course requirements (if school/major detected)
+3. Generate 5 HTML sections: header, projects, skills, experience, education
+4. Fallback to regex parsing if AI fails
+5. Save to `/backend/resumes/{uuid}.json`
 
 ---
 
-## Frontend (Main) - `/frontend`
+## Frontend (Next.js)
 
-### Tech Stack
-- **Framework**: Next.js 15.5.4
-- **React**: 19.1.0
-- **TypeScript**: 5.x
-- **Styling**: Tailwind CSS 4
-- **Package Manager**: pnpm
+**Tech Stack**: Next.js 15.5.4, React 19, TypeScript, Tailwind CSS 4, @dnd-kit, Lucide Icons
 
-### Directory Structure
+### Pages
 
-```
-frontend/
-├── src/
-│   ├── app/
-│   │   ├── page.tsx         # Main upload page
-│   │   └── layout.tsx       # Root layout
-│   └── components/
-│       ├── CourseList.tsx   # Course selection component
-│       └── CourseBox.tsx    # Individual course card
-├── package.json
-├── next.config.ts
-└── tsconfig.json
-```
+**`/` (Upload Page)** - Main entry point. Drag-and-drop PDF upload, displays 5 extracted resume sections, shows course selection with multi-select checkboxes. Uses localStorage to pass data to editor. Implements FR-1.1, FR-1.2, FR-3.1, FR-3.2 (partial).
 
-### Key Components
+**`/resume-editor` (Editor Page)** - Interactive resume editor with drag-and-drop section reordering (@dnd-kit), slide-in AI helper panel (60/40 split), and editing toolbar. Loads data from localStorage, saves to both localStorage and backend. Implements FR-4.2, FR-4.3, FR-4.6, FR-4.7 (partial).
 
-#### 1. `page.tsx` (Main Upload Page)
-**Purpose**: Resume upload interface with course requirements
+### Components
 
-**State Management**:
-- `file`: Selected PDF file
-- `isUploading`: Upload status
-- `result`: API response data
-- `courses`: Transformed course list
-- `selectedCourses`: User-selected courses
-- `error`: Error messages
+**Resume Editing** (`/components/resume/`):
+- `ResumeSection.tsx`: Sortable resume sections with HTML rendering
+- `EditableText.tsx`: Click-to-edit with keyboard shortcuts (Enter/Escape)
+- `AIHelperPanel.tsx`: Context-aware tips and AI suggestions
+- `EditingToolbar.tsx`: Floating toolbar for text improvements
 
-**API Integration**:
-```typescript
-POST http://localhost:8000/upload-resume
-Content-Type: multipart/form-data
-Body: FormData with 'file' field
-```
+**Course Selection** (`/components/`):
+- `CourseList.tsx`: Multi-select checkboxes with Clear All button
+- `CourseBox.tsx`: Individual course card
 
-**Data Transformation** (Lines 50-58):
-```typescript
-// Backend format
-{course_number: "CS 101", course_title: "Intro"}
+### User Flow
 
-// Component format
-{id: "CS 101", name: "Intro", code: "CS 101"}
-```
-
-**UI Features**:
-- Drag-and-drop file upload
-- Loading states
-- Error handling
-- Course list with checkboxes
-- Gradient background (blue to indigo)
-
-#### 2. `CourseList.tsx`
-**Purpose**: Displays courses from scraped catalog
-
-**Props**:
-```typescript
-interface Course {
-  id: string;
-  name: string;
-  code: string;
-}
-
-interface Props {
-  courses: Course[];
-  onSelectionChange: (selected: string[]) => void;
-}
-```
-
-**Features**:
-- Checkbox selection
-- Course code + name display
-- Callback for selection changes
-
----
-
-## Resume-Helper Application - `/resume-helper`
-
-### Tech Stack
-- **Framework**: Next.js 15.1.7
-- **React**: 19.1.1
-- **TypeScript**: 5.9.3
-- **Styling**: Tailwind CSS 4.1.14
-- **State Management**: Zustand 5.0.8
-- **Drag & Drop**: react-dropzone 14.3.8
-- **Animations**: Framer Motion 12.23.22
-- **Testing**: Vitest 3.2.4, Testing Library
-- **Icons**: Lucide React
-
-### Architecture Pattern
-
-**State Management**: Zustand stores (centralized, immutable)
-**UI Pattern**: Atomic Design (Atoms → Molecules → Organisms → Screens)
-**Routing**: Next.js App Router
-
-### Directory Structure
-
-```
-resume-helper/
-├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── page.tsx           # Upload screen route
-│   │   ├── edit/page.tsx      # Edit screen route
-│   │   └── layout.tsx         # Root layout
-│   ├── components/
-│   │   ├── ui/                # Reusable UI components
-│   │   │   ├── Button.tsx
-│   │   │   ├── Card.tsx
-│   │   │   ├── FileDropzone.tsx
-│   │   │   └── LoadingSpinner.tsx
-│   │   ├── layout/            # Layout components
-│   │   │   ├── Header.tsx
-│   │   │   ├── ScreenContainer.tsx
-│   │   │   └── EditContainer.tsx
-│   │   ├── resume/            # Resume-specific components
-│   │   │   ├── ResumePreview.tsx
-│   │   │   ├── ResumeBlock.tsx
-│   │   │   ├── AIHelperPanel.tsx
-│   │   │   └── VerificationHeader.tsx
-│   │   └── screens/           # Full screen components
-│   │       ├── UploadScreen.tsx
-│   │       └── EditScreen.tsx
-│   ├── stores/                # Zustand state stores
-│   │   ├── resumeStore.ts     # Resume data management
-│   │   ├── uploadStore.ts     # Upload state
-│   │   └── editModeStore.ts   # Edit mode state
-│   ├── hooks/                 # Custom React hooks
-│   │   ├── useFileUpload.ts
-│   │   ├── useDragAndDrop.ts
-│   │   └── useEditMode.ts
-│   ├── types/                 # TypeScript definitions
-│   │   ├── resume.ts
-│   │   ├── upload.ts
-│   │   ├── ui.ts
-│   │   └── index.ts
-│   ├── constants/             # Static data
-│   │   ├── resumeData.ts
-│   │   └── aiSuggestions.ts
-│   ├── lib/                   # Utility functions
-│   │   └── utils.ts
-│   └── __tests__/             # Test files
-│       └── App.test.tsx
-├── package.json
-├── vitest.config.ts
-└── tsconfig.json
-```
-
-### Key Components and Their Responsibilities
-
-#### State Stores (Zustand)
-
-##### 1. `resumeStore.ts` (Lines: 157)
-**Purpose**: Central resume data management
-
-**State Schema**:
-```typescript
-interface ResumeData {
-  header: ResumeBlock;      // Contact info
-  projects: ResumeBlock;    // Projects section
-  skills: ResumeBlock;      // Technical skills
-  experience: ResumeBlock;  // Work experience
-  education: ResumeBlock;   // Education section
-}
-
-interface ResumeBlock {
-  id: string;
-  section: ResumeSection;
-  title: string;
-  content: string;          // HTML from backend
-  isConfirmed: boolean;     // User verification
-  order: number;            // Display order
-}
-```
-
-**Key Actions**:
-1. `updateResumeBlock(section, updates)`: Update section content
-2. `confirmSection(section)`: Mark section as verified
-3. `reorderSections(fromIndex, toIndex)`: Drag-and-drop reordering
-4. `setProcessedResumeData(backendData)`: Transform backend response
-5. `resetResumeData()`: Clear all data
-6. `setProcessingError(error)`: Handle errors
-
-**Backend Integration** (Lines 92-147):
-Transforms backend API response to internal format:
-```typescript
-// Backend → Frontend transformation
-{
-  header: "HTML string",
-  projects: "HTML string",
-  skills: "HTML string",
-  experience: "HTML string",
-  education: "HTML string"
-}
-↓
-{
-  header: {id, section, title, content, isConfirmed, order},
-  projects: {...},
-  skills: {...},
-  experience: {...},
-  education: {...}
-}
-```
-
-##### 2. `uploadStore.ts`
-**Purpose**: Manage file upload state
-
-**Expected State**:
-- Upload progress
-- File validation
-- Upload errors
-
-##### 3. `editModeStore.ts`
-**Purpose**: Edit mode UI state
-
-**Expected State**:
-- Active section being edited
-- Edit modal visibility
-- Unsaved changes tracking
-
-#### Screen Components
-
-##### 1. `UploadScreen.tsx` (Lines: 138)
-**Purpose**: Initial file upload interface
-
-**Features**:
-- Multi-file upload (resume, transcript, projects)
-- Required vs optional file indicators
-- File type validation (PDF only)
-- Loading state during analysis
-- Privacy notice
-
-**File Types**:
-```typescript
-{
-  resume: {icon: '📄', required: true},
-  transcript: {icon: '🎓', required: true},
-  projects: {icon: '📂', required: false}
-}
-```
-
-**Backend Integration** (Lines 32-59):
-```typescript
-POST http://localhost:8000/upload-resume
-FormData: {file: resumeFile}
-→ Response transformed and stored in resumeStore
-→ Navigate to /edit screen
-```
-
-**User Flow**:
-1. Upload resume (required) + transcript (required)
-2. Optionally upload projects
-3. Click "Analyze & Build My Resume"
-4. Loading spinner during backend processing
-5. Navigate to edit screen on success
-
-##### 2. `EditScreen.tsx`
-**Purpose**: Resume editing and verification interface
-
-**Expected Features**:
-- Section-by-section editing
-- AI suggestions panel
-- Live preview
-- Section reordering
-- Confirm/reject changes
-- Export to PDF
-
-#### Custom Hooks
-
-##### 1. `useFileUpload.ts`
-**Purpose**: File upload logic and validation
-
-**Expected API**:
-```typescript
-{
-  files: Record<FileType, UploadedFile>,
-  isUploading: boolean,
-  isAnalyzing: boolean,
-  handleFileSelect: (file: File, type: FileType) => void,
-  isFileUploaded: (type: FileType) => boolean,
-  getUploadedFileName: (type: FileType) => string
-}
-```
-
-##### 2. `useDragAndDrop.ts`
-**Purpose**: Section reordering functionality
-
-##### 3. `useEditMode.ts`
-**Purpose**: Edit mode state management
-
-#### Type Definitions
-
-##### `resume.ts`
-```typescript
-type ResumeSection = 'header' | 'projects' | 'skills' | 'experience' | 'education';
-
-interface ResumeBlock {
-  id: string;
-  section: ResumeSection;
-  title: string;
-  content: string;
-  isConfirmed: boolean;
-  order: number;
-}
-
-interface ResumeData {
-  header: ResumeBlock;
-  projects: ResumeBlock;
-  skills: ResumeBlock;
-  experience: ResumeBlock;
-  education: ResumeBlock;
-}
-```
-
-##### `upload.ts`
-```typescript
-type FileType = 'resume' | 'transcript' | 'projects';
-
-interface UploadedFile {
-  file: File;
-  name: string;
-  size: number;
-  uploadedAt: Date;
-}
-```
+1. Upload PDF → Extract 5 sections → Display course catalog
+2. Select courses → Navigate to editor (`?id={uuid}`)
+3. Drag sections → Click to edit → Get AI suggestions → Save
 
 ---
 
@@ -550,7 +186,7 @@ interface UploadedFile {
 
 ```
 ┌────────────────────────────────────────────────────────────────┐
-│ 1. User Uploads PDF Resume (Frontend or Resume-Helper)         │
+│ 1. User Uploads PDF Resume (Frontend)                          │
 └───────────────────────────┬────────────────────────────────────┘
                             │
                             ▼
@@ -593,16 +229,17 @@ interface UploadedFile {
 ┌────────────────────────────────────────────────────────────────┐
 │ 5. Frontend Processing                                         │
 │                                                                 │
-│    Main Frontend:                                              │
+│    Upload Page:                                                │
 │    → Display extracted text                                    │
 │    → Show course list with checkboxes                          │
+│    → Navigate to resume editor                                 │
 │                                                                 │
-│    Resume-Helper:                                              │
-│    → Transform to ResumeData format                            │
-│    → Store in resumeStore                                      │
-│    → Navigate to /edit screen                                  │
-│    → User verifies/edits each section                          │
-│    → Export final resume                                       │
+│    Resume Editor:                                              │
+│    → Transform to editable sections                            │
+│    → Enable drag-and-drop reordering                           │
+│    → Provide inline text editing                               │
+│    → Show AI suggestions panel                                 │
+│    → Real-time preview updates                                 │
 └────────────────────────────────────────────────────────────────┘
 ```
 
@@ -623,12 +260,13 @@ interface UploadedFile {
 **Tradeoff**: More expensive but more robust
 **Optimization**: Cache results to reduce API calls
 
-### 3. **Separate Frontend Applications**
-**Decision**: Two Next.js apps (`frontend` and `resume-helper`)
+### 3. **Integrated Frontend Application**
+**Decision**: Single Next.js app with multiple routes
 **Rationale**:
-- `frontend`: Simple demo/MVP for resume upload
-- `resume-helper`: Full-featured resume builder with editing
-**Possible Consolidation**: Could be merged into single app with routing
+- Upload page for resume processing and course analysis
+- Resume editor page for interactive editing with AI assistance
+- Seamless navigation between upload and editing workflows
+**Benefits**: Simplified deployment, shared components, unified state management
 
 ### 4. **HTML Content Storage**
 **Decision**: Store resume sections as HTML strings instead of structured data
@@ -645,12 +283,12 @@ interface UploadedFile {
 **Migration Path**: Redis or PostgreSQL for production
 
 ### 6. **Client-side State Management**
-**Decision**: Zustand instead of Redux/Context
+**Decision**: Local React state with @dnd-kit for drag-and-drop
 **Rationale**:
-- Simpler API
-- Less boilerplate
-- Better TypeScript support
-- Small bundle size
+- Simpler for single-page editing workflow
+- No external state management needed
+- Direct integration with drag-and-drop library
+- Reduced bundle size
 
 ### 7. **PDF-only Upload**
 **Decision**: Only accept PDF resumes
@@ -702,56 +340,28 @@ poetry run uvicorn main:app --reload --port 8000
 **Frontend**:
 ```bash
 cd frontend
-pnpm install
-pnpm run dev  # Port 3000
-```
-
-**Resume-Helper**:
-```bash
-cd resume-helper
 npm install
-npm run dev  # Port 3001 (configure in package.json)
+npm run dev  # Port 3000
 ```
 
 ---
 
-## API Documentation
+## API Endpoints
 
-### Endpoints
+| Endpoint | Method | Purpose | Mentor Feature |
+|----------|--------|---------|----------------|
+| `/` | GET | Health check | - |
+| `/upload-resume` | POST | Process PDF, extract 5 sections | FR-1.2 |
+| `/update-section` | PUT | Update individual section HTML | FR-4.4 |
+| `/resume/{resume_id}` | GET | Retrieve saved resume | - |
+| `/parse-section` | POST | Re-parse section with AI + fallback | - |
+| `/validate-section` | POST | Check section completeness | FR-6.3 (not wired) |
+| `/integrate-courses` | POST | Add courses to education | FR-3.2 |
+| `/improve-text` | POST | AI text improvements (4 types) | FR-4.7 |
+| `/update-field` | POST | Granular field-level updates | - |
 
-#### `GET /`
-**Description**: Health check
-**Response**: `{"message": "Mentor Resume Parser API"}`
-
-#### `POST /upload-resume`
-**Description**: Upload and process PDF resume
-
-**Request**:
-- Content-Type: `multipart/form-data`
-- Body: FormData with `file` field (PDF)
-
-**Response** (200 OK):
-```json
-{
-  "filename": "john_doe_resume.pdf",
-  "text": "Full extracted text...",
-  "header": "<p>John Doe | Software Engineer | ...</p>",
-  "projects": "<h4>Project 1</h4><p>...</p><ul><li>...</li></ul>",
-  "skills": "<p><strong>Languages:</strong> Python, JS</p>...",
-  "experience": "<h4>Senior Engineer</h4><p>...</p><ul>...</ul>",
-  "education": "<h4>BS Computer Science</h4><p>...</p>",
-  "course_work": [
-    {"course_number": "CS 101", "course_title": "Intro to CS"},
-    {"course_number": "CS 201", "course_title": "Data Structures"}
-  ]
-}
-```
-
-**Errors**:
-- 400: Invalid file type, file too large, empty PDF, extraction error
-- 500: Server error
-
-**Interactive Docs**: http://localhost:8000/docs (FastAPI auto-generated)
+**Total**: 9 endpoints  
+**Interactive Documentation**: http://localhost:8000/docs (FastAPI auto-generated with request/response schemas)
 
 ---
 
@@ -766,97 +376,64 @@ No tests currently implemented
 - Course scraping
 - Cache operations
 
-### Resume-Helper
-**Framework**: Vitest + Testing Library
+### Frontend
+**Framework**: No testing framework currently configured
 
-**Run Tests**:
-```bash
-cd resume-helper
-npm run test
-```
-
-**Test Files**: `src/__tests__/App.test.tsx`
+**TODO**: Add testing framework (Jest + Testing Library or Vitest)
 
 ---
 
-## Future Enhancements & TODOs
+## Roadmap to Complete Mentor Spec
 
-### High Priority
-1. **Consolidate Frontend Apps**: Merge `frontend` and `resume-helper` or clarify purpose
-2. **Environment Variables**: Use `.env` for API URLs instead of hardcoding
-3. **Error Handling**: User-friendly error messages in UI
-4. **Resume Export**: PDF generation from HTML content
-5. **Authentication**: User accounts to save resumes
+Reference: `mentor-feature-doc.md` for detailed feature requirements.
 
-### Medium Priority
-6. **Database**: Replace JSON cache with PostgreSQL/Redis
-7. **File Storage**: S3/Cloud storage for uploaded PDFs
-8. **Rate Limiting**: Prevent API abuse
-9. **Tests**: Backend unit tests, frontend integration tests
-10. **Resume Templates**: Multiple design options
+### Phase 1 Completion (Onboarding - 60% remaining)
+- **FR-1.3**: Missing info prompts - Add input fields if school/major/year not detected
+- **FR-2.1**: Education verification UI - Dropdown for school, search for major
+- **FR-2.2**: Academic standing calculator - Determine semester based on grad year
 
-### Low Priority
-11. **DOCX Support**: Accept Word documents
-12. **Multi-language**: Support international resumes
-13. **AI Suggestions**: Real-time improvement suggestions
-14. **Collaboration**: Share resumes with mentors for feedback
-15. **Analytics**: Track resume optimization metrics
+### Phase 2 Completion (Course Selection - 50% remaining)
+- **FR-3.2**: Search/filter for courses - Add search bar and Select All button  
+- **FR-3.3**: Transcript upload - Auto-detect courses from academic PDF
+- **FR-3.4-3.5**: Course-project association - Link projects to courses with GitHub URLs
 
----
+### Phase 3 Completion (Resume Editing - 40% remaining)
+- **FR-4.4**: Full inline editing - Make HTML sections editable (currently only text fields work)
+- **FR-4.5**: Bullet point CRUD - Add/delete/reorder bullets within sections
+- **FR-4.7**: Multiple AI suggestions - Show 2-3 rewrite options, not just 1
+- **FR-4.8**: Interactive suggestion flow - "Use This" vs "Keep Original" buttons
+- **FR-4.9**: Manual enhancement tools - Action verb bank, example bullet points
 
-## Common Development Tasks
+### Phase 4: Experience Enhancement (100% remaining)
+- **FR-5.1-5.3**: Experience level detection and enhancement prompts
+- **FR-5.4-5.5**: Leadership experience templates and guided questions
 
-### Add a New LLM Provider
-1. Create class in `backend/provider.py` extending `LLMProvider`
-2. Implement `generate(prompt, max_tokens)` method
-3. Add to `providers` dict in `get_llm_provider()`
-4. Update `.env` with API key
-5. Change `main.py:11` to use new provider
+### Phase 5: Skills Synthesis (33% remaining)
+- **FR-6.3**: Skills validation - Cross-check skills appear in resume body (backend ready, needs UI)
 
-### Add a New Resume Section
-1. Update `ResumeSection` type in `resume-helper/src/types/resume.ts`
-2. Add LLM prompt in `backend/main.py`
-3. Update `ResumeData` interface
-4. Add to `resumeStore.ts` state
-5. Create UI component in `resume-helper/src/components/resume/`
+### Phase 6: Resume Export (100% remaining)
+- **FR-7.1**: Preview modes - Print preview and mobile view
+- **FR-7.2**: Export options - LaTeX template, PDF, clipboard copy (CRITICAL)
 
-### Modify Course Scraping Logic
-1. Edit `backend/course_scraper.py`
-2. Update `extractCourses()` LLM prompt
-3. Clear cache: `rm backend/cache/*.json`
-4. Test with various universities
+### Phase 7: Career Planning (100% remaining)
+- **FR-8.1-8.3**: Job interest prompts, AI recommendations, gap analysis
 
-### Change Resume HTML Structure
-1. Modify prompts in `backend/main.py` (search for "OUTPUT FORMAT:")
-2. Update `ResumeBlock.content` rendering in `ResumePreview.tsx`
-3. Test with sample resumes
+### Phase 8: Project Recommendations (100% remaining)
+- **FR-9.1-9.4**: Tailored project ideas by duration (1-week, 2-week, 1-month)
+
+### Infrastructure (Not in Mentor Spec but Required)
+1. Authentication - NextAuth.js + JWT for user accounts
+2. Database - PostgreSQL to replace JSON files
+3. PDF Export Library - jsPDF or Puppeteer for FR-7.2
+4. Testing - pytest + Jest for reliability
 
 ---
 
-## Performance Considerations
+## Performance Notes
 
-### LLM API Calls per Resume Upload
-- **6 LLM calls total**:
-  1. Metadata extraction (college, major, year)
-  2. Header HTML generation
-  3. Projects HTML generation
-  4. Skills HTML generation
-  5. Experience HTML generation
-  6. Education HTML generation
+**LLM Usage**: 6 API calls per resume upload (metadata + 5 sections), plus 1 for course scraping if not cached. Consider batching prompts or using cheaper models for simple extraction.
 
-- **1 additional LLM call** for course scraping (if not cached)
-
-**Optimization Ideas**:
-- Batch prompts into single LLM call
-- Use cheaper models for simple extraction
-- Implement prompt caching (Anthropic)
-
-### Caching Strategy
-- Course data cached indefinitely (manual invalidation)
-- Cache hit rate ~90% for common schools/majors
-- No TTL implemented
-
-**Production TODO**: Add cache expiration and invalidation strategy
+**Caching**: Course catalogs cached 30 days. ~90% hit rate for common schools. Auto-cleanup of expired files.
 
 ---
 
@@ -883,36 +460,39 @@ npm run test
 
 ---
 
-## Troubleshooting
+## Production Readiness Assessment
 
-### Backend won't start
-- Check Python version: `python --version` (need 3.9+)
-- Install Poetry: `pip install poetry`
-- Install dependencies: `cd backend && poetry install`
-- Check `.env` file exists with API keys
+### Critical Blockers (MUST FIX before production)
 
-### Frontend won't start
-- Check Node version: `node --version` (need 18+)
-- Install pnpm: `npm install -g pnpm`
-- Clear cache: `rm -rf .next node_modules`
-- Reinstall: `pnpm install`
+1. **No Authentication** - Anyone can access any resume. Need NextAuth.js + JWT.
+2. **No PDF Export** (FR-7.2) - Blocking core Mentor feature. Users cannot download final resume.
+3. **CORS Wide Open** - Allows all origins (`*`). Must whitelist production domain only.
+4. **No File Virus Scanning** - Malicious PDFs could compromise server.
+5. **API Keys in .env** - Risk of git commits. Migrate to AWS Secrets Manager.
 
-### CORS errors
-- Verify backend is running on port 8000
-- Check frontend URL in `backend/main.py:16`
-- Browser may cache CORS headers (hard refresh)
+### Known Bugs
 
-### Course scraping fails
-- Check SerpAPI key and quota
-- Verify internet connection
-- Check cache: `ls backend/cache/`
-- Try different university name format
+1. **HTML Sections Not Editable** - EditableText only works on plain text, not HTML content from LLM
+2. **Toolbar Positioning** - May go off-screen on small displays
+3. **Partial Button Wiring** - Only "Rephrase" button works; Grammar/Action Verb are UI-only
+4. **Section Reorder Not Saved** - Drag-and-drop changes lost unless user clicks "Save"
+5. **LocalStorage Limit** - Large resumes (>5MB) will silently fail to save
 
-### LLM errors
-- Verify API keys in `.env`
-- Check API quota/billing
-- Try different provider in `main.py:11`
-- Check prompt length (may exceed token limit)
+### Technical Debt (Top Priority)
+
+1. **Hardcoded API URLs** - `localhost:8000` in 6+ files. Use `NEXT_PUBLIC_API_URL` env var.
+2. **No Rate Limiting** - Vulnerable to DoS and excessive LLM API costs.
+3. **XSS Risk** - Using `dangerouslySetInnerHTML` without DOMPurify sanitization.
+
+---
+
+## Quick Troubleshooting
+
+**Backend won't start**: Check Python 3.9+, run `cd backend && poetry install`, verify `.env` has API keys.
+
+**Frontend won't start**: Check Node 18+, run `cd frontend && npm install`, clear `.next` cache.
+
+**CORS errors**: Verify backend on port 8000, frontend on port 3000, try hard refresh.
 
 ---
 
@@ -947,7 +527,7 @@ For questions about architectural decisions or to propose changes, please refer 
 
 - **LLM**: Large Language Model (GPT-4, Claude, Gemini)
 - **SerpAPI**: Search Engine Results Page API (Google search)
-- **Zustand**: Lightweight state management library
+- **@dnd-kit**: Drag and drop library for React
 - **PyMuPDF**: Python library for PDF processing (alias: fitz)
 - **CORS**: Cross-Origin Resource Sharing
 - **MVP**: Minimum Viable Product
@@ -955,5 +535,7 @@ For questions about architectural decisions or to propose changes, please refer 
 
 ---
 
-**Last Updated**: 2025-10-06
-**Documentation Version**: 1.0
+**Last Updated**: 2025-10-08
+**Documentation Version**: 3.0 (Simplified, Mentor-focused)
+**Mentor Spec Completion**: 30% (Phases 1-3 partial, Phases 4-8 not implemented)
+**Production Ready**: No (see Production Readiness Assessment)
