@@ -183,6 +183,8 @@ async def upload_resume_options():
 @app.post("/upload-resume")
 async def upload_resume(file: UploadFile = File(...)):
 
+    resume_data = {}
+
     if not file.filename.endswith('.pdf'):
         raise HTTPException(status_code=400, detail="Only PDF files are allowed")
 
@@ -253,9 +255,11 @@ async def upload_resume(file: UploadFile = File(...)):
         major = parsed_response["major"]
         graduation_year = parsed_response["graduation_year"]
 
+        resume_data.update(parsed_response)
+
         print(f"🔍 Extracted from resume - College: {college_name}, Major: {major}")
-        course_work = scrapeCourseRequirements(college_name, major)
-        print(f"📚 Found {len(course_work)} courses for {college_name} {major}")
+        # course_work = scrapeCourseRequirements(college_name, major)
+        print(f"Found {len(course_work)} courses for {college_name} {major}")
     except Exception as e:
         print(f"Error in LLM processing: {e}")
         # Fallback values if API fails
@@ -272,7 +276,7 @@ async def upload_resume(file: UploadFile = File(...)):
                 "projects": "Please add your projects manually", 
                 "skills": "Please add your skills manually",
                 "experience": "Please add your work experience manually",
-                "education": "Please add your education manually",
+                "school_name": "Please add your education manually",
                 "course_work": [],
                 "raw_text": extracted_text
             }
@@ -473,7 +477,7 @@ async def upload_resume(file: UploadFile = File(...)):
         education = parse_raw_text_for_section('education', extracted_text)
 
     # Save data (resume_id already generated)
-    resume_data = {
+    resume_data.update({
         "resume_id": resume_id,
         "filename": file.filename,
         "text": extracted_text,
@@ -486,7 +490,7 @@ async def upload_resume(file: UploadFile = File(...)):
         "course_work": course_work,
         "created_at": datetime.now().isoformat(),
         "updated_at": datetime.now().isoformat()
-    }
+    })
     
     # Save to file system
     save_resume_data(resume_id, resume_data)
@@ -692,11 +696,17 @@ async def update_field(resume_id: str, section_id: str, field_type: str, field_i
         raise HTTPException(status_code=500, detail=f"Error updating field: {str(e)}")
 
 @app.post("/validate-education")
-async def validate_education(school: str, major: str):
+async def validate_education(req : Request):
     """Validate if school and major combination exists in course catalog"""
+
+    
     try:
+
+        body = await req.json()
+        school = body['school']
+        major = body['major']
+
         # Check if we can scrape courses for this combination
-        from course_scraper import scrapeCourseRequirements
         courses = scrapeCourseRequirements(school, major)
         
         return {
@@ -811,6 +821,7 @@ async def scrape_courses_endpoint(request: Request):
         print(f"📡 Scraping courses for: {school} | {major}")
         courses = scrapeCourseRequirements(school, major)
         print(f"✅ Found {len(courses)} courses")
+        print(courses)
         
         # Save to resume data if resume_id is provided
         if resume_id and resume_id != 'temp-id':
@@ -821,7 +832,8 @@ async def scrape_courses_endpoint(request: Request):
                 save_resume_data(resume_id, resume_data)
                 print(f"💾 Saved courses to resume {resume_id}")
         
-        return {"courses": courses}
+        
+        return JSONResponse(content=courses)
     except HTTPException:
         raise
     except Exception as e:

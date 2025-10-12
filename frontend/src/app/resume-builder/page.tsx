@@ -32,13 +32,16 @@ export default function ResumeBuilderPage() {
       // Phase 2: Validate education before proceeding
       if (currentPhase === 2) {
         try {
+
+          const body =JSON.stringify({
+            school: store.education.school,
+            major: store.education.major
+          })
+          
           const response = await fetch('http://localhost:8000/validate-education', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              school: store.education.school,
-              major: store.education.major
-            })
+            body: body
           });
           
           const result = await response.json();

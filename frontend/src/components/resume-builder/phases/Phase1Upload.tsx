@@ -59,10 +59,10 @@ export function Phase1Upload({ onComplete }: Phase1UploadProps) {
       // Populate store with extracted data
       setResumeId(data.resume_id);
       
-      if (data.education) {
+      if (data.college_name) {
         updateEducation({
-          school: data.education.school || '',
-          major: data.education.major || '',
+          school: data.college_name || '',
+          major: data.major || '',
           gradYear: data.education.grad_year?.toString() || '',
         });
       }

@@ -37,7 +37,7 @@ export function Phase3Courses() {
           return;
         }
         
-        console.log('📡 Fetching courses for:', education.school, education.major);
+        console.log('📡 Fetching courses for:', education, education.major);
         
         // Fetch courses from backend using course scraper
         // Note: resumeId is optional for scraping, can be null for initial fetch
@@ -50,22 +50,11 @@ export function Phase3Courses() {
             resume_id: resumeId || 'temp-id' // Use temp ID if no resume uploaded yet
           })
         });
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('❌ Backend error:', response.status, errorText);
-          throw new Error(`Failed to fetch courses: ${response.status} ${errorText}`);
-        }
-        
+    
         const data = await response.json();
         console.log('📚 Received course data:', data);
         
-        if (!data.courses || !Array.isArray(data.courses)) {
-          console.error('❌ Invalid courses data:', data);
-          throw new Error('Invalid courses response from server');
-        }
-        
-        const transformedCourses = data.courses.map((c: any) => ({
+        const transformedCourses = data.map((c: any) => ({
           id: c.course_number || c.code,
           code: c.course_number || c.code,
           name: c.course_title || c.name
@@ -86,8 +75,8 @@ export function Phase3Courses() {
   
   const filteredCourses = courses.filter(
     (course) =>
-      course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.name.toLowerCase().includes(searchTerm.toLowerCase())
+      course.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      course.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
   const handleSelectAll = () => {

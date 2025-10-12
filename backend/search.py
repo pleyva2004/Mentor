@@ -1,5 +1,5 @@
 from course_scraper import scrapeCourseRequirements
 
-result = scrapeCourseRequirements("MIT", "Computer Science")
+result = scrapeCourseRequirements("New Jersey Institute of Technology", "Civil Engineering")
 
 print(result)

@@ -9,6 +9,9 @@ from typing import Optional
 from serpapi import GoogleSearch
 from cache import get_cache, set_cache
 from extract import parseLLMResponse
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -16,7 +19,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-client = get_llm_provider(provider="anthropic")
+client = get_llm_provider(provider="openai")
 
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -28,6 +31,7 @@ def searchCourseCatalogs(school: str, major: str) -> list[str]:
     query = f"{school} {major} degree requirements course catalog"
 
     try:
+
         search = GoogleSearch({
             "engine": "google",
             "q": query,
